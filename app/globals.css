@@ -1,0 +1,165 @@
+@import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --ebony-50: #f3f6fb;
+  --ebony-100: #e3ebf6;
+  --ebony-200: #cdddf0;
+  --ebony-300: #abc7e5;
+  --ebony-400: #83aad7;
+  --ebony-500: #668dcb;
+  --ebony-600: #5275be;
+  --ebony-700: #4863ad;
+  --ebony-800: #3f538e;
+  --ebony-900: #374771;
+  --ebony-950: #252d46;
+  --contador: #b0abfa;
+  --button: #ff0000;
+  --rubik: "Rubik", sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ebony-950: var(--ebony-950);
+  --color-ebony-900: var(--ebony-900);
+  --color-ebony-800: var(--ebony-800);
+  --color-ebony-700: var(--ebony-700);
+  --color-ebony-600: var(--ebony-600);
+  --color-ebony-500: var(--ebony-500);
+  --color-ebony-400: var(--ebony-400);
+  --color-ebony-300: var(--ebony-300);
+  --color-ebony-200: var(--ebony-200);
+  --color-ebony-100: var(--ebony-100);
+  --color-ebony-50: var(--ebony-50);
+  --color-button: var(--button);
+  --color-contador: var(--contador);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-rubik: var(--rubik);
+}
+
+/*@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}*/
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .container-padding {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 80rem; /* 1280px - equivalente a max-w-7xl */
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .container-padding-sm {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 64rem; /* 1024px */
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .container-padding-lg {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 96rem; /* 1536px */
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+
+  /* Pantallas pequeñas (móviles) */
+  @media (max-width: 640px) {
+    .container-padding {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .container-padding-sm {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+
+    .container-padding-lg {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  /* Pantallas medianas (tablets/desktop) */
+  @media (min-width: 1024px) {
+    .container-padding {
+      padding-left: 4rem;
+      padding-right: 4rem;
+    }
+
+    .container-padding-sm {
+      padding-left: 3rem;
+      padding-right: 3rem;
+    }
+
+    .container-padding-lg {
+      padding-left: 6rem;
+      padding-right: 6rem;
+    }
+  }
+
+  /* Pantallas muy grandes (4K, ultrawide, etc.) */
+  @media (min-width: 1920px) {
+    .container-padding {
+      max-width: 100rem; /* 1920px */
+      padding-left: 6rem;
+      padding-right: 6rem;
+    }
+
+    .container-padding-sm {
+      max-width: 80rem; /* 1280px */
+      padding-left: 5rem;
+      padding-right: 5rem;
+    }
+
+    .container-padding-lg {
+      max-width: 144rem; /* 2304px */
+      padding-left: 8rem;
+      padding-right: 8rem;
+    }
+  }
+
+  /* Pantallas extremadamente grandes (5K+) */
+  @media (min-width: 2560px) {
+    .container-padding {
+      max-width: 110rem; /* 2560px */
+      padding-left: 8rem;
+      padding-right: 8rem;
+    }
+
+    .container-padding-sm {
+      max-width: 120rem; /* 1920px */
+      padding-left: 6rem;
+      padding-right: 6rem;
+    }
+
+    .container-padding-lg {
+      max-width: 192rem; /* 3072px */
+      padding-left: 12rem;
+      padding-right: 12rem;
+    }
+  }
+}
+
+/* Oculta el overlay/flotante de Next.js dev */
+.nextjs-portal, [data-nextjs-toast] {
+  display: none !important;
+}
+

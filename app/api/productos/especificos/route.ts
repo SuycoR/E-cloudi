@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
       pe.cantidad_stock AS stock,
       pe.imagen_producto AS imagen,
       pe.fecha_registro
-    FROM Ecommerce.producto_especifico pe
-    INNER JOIN Ecommerce.producto p ON p.id = pe.id_producto
+    FROM ecommerce.producto_especifico pe
+    INNER JOIN ecommerce.producto p ON p.id = pe.id_producto
   `;
 
   const wheres: string[] = [];
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
   // 2️⃣ JOIN y filtro por subcategorías (nivel 2)
   if (subcategoriaIds.length > 0) {
     sql += `
-      INNER JOIN Ecommerce.producto_categoria pc ON p.id = pc.id_producto
+      INNER JOIN ecommerce.producto_categoria pc ON p.id = pc.id_producto
     `;
     wheres.push(`pc.id_cat_n2 IN (${subcategoriaIds.join(",")})`);
   }

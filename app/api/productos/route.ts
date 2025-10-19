@@ -109,8 +109,8 @@ async function fetchProductsWithoutVariations(categoryId: string,
   // Si queremos productos que tengan alguna promoción o no
   const joinPromo =
     onlyPromo === "true"
-      ? "INNER JOIN Ecommerce.promocion_producto_especifico AS ppe ON pe.id = ppe.id_producto_especifico"
-      : "LEFT JOIN Ecommerce.promocion_producto_especifico AS ppe ON pe.id = ppe.id_producto_especifico";
+      ? "INNER JOIN ecommerce.promocion_producto_especifico AS ppe ON pe.id = ppe.id_producto_especifico"
+      : "LEFT JOIN ecommerce.promocion_producto_especifico AS ppe ON pe.id = ppe.id_producto_especifico";
 
   // Si se nos especifica el límite de productos a devolver
   const limitSentence = limit
@@ -121,7 +121,7 @@ async function fetchProductsWithoutVariations(categoryId: string,
   const catLevel = parseInt(categoryLevel);
 
   // Join para validar si la promoción está vigente
-  const joinPromocion = "LEFT JOIN Ecommerce.promocion AS pr ON pr.id = ppe.id_promocion";
+  const joinPromocion = "LEFT JOIN ecommerce.promocion AS pr ON pr.id = ppe.id_promocion";
 
   // Si se nos especifica el nivel de categoría y el id de la categoría
   const joinCategory =
@@ -133,7 +133,7 @@ async function fetchProductsWithoutVariations(categoryId: string,
       SELECT 
         id_producto, 
         MIN(precio) AS precio_max
-      FROM Ecommerce.producto_especifico
+      FROM ecommerce.producto_especifico
       GROUP BY id_producto
     )
 
@@ -146,8 +146,8 @@ async function fetchProductsWithoutVariations(categoryId: string,
       pe.precio,               -- aquí es el precio máximo
       traer_descuento(pe.id) AS porcentaje_desc
 
-    FROM Ecommerce.producto AS p
-    INNER JOIN Ecommerce.producto_especifico AS pe 
+    FROM ecommerce.producto AS p
+    INNER JOIN ecommerce.producto_especifico AS pe 
     ON p.id = pe.id_producto
     INNER JOIN max_precios AS mp
     ON pe.id_producto = mp.id_producto
@@ -160,7 +160,7 @@ async function fetchProductsWithoutVariations(categoryId: string,
       
     WHERE pe.id = (
       SELECT MIN(ID) 
-      FROM Ecommerce.producto_especifico
+      FROM ecommerce.producto_especifico
       WHERE id_producto = mp.id_producto
       AND precio = mp.precio_max
       )
@@ -199,8 +199,8 @@ async function fetchProductsWithoutVariations(categoryId: string,
   SELECT 
     MIN(pe.precio) AS minPrecio,
     MAX(pe.precio) AS maxPrecio
-  FROM Ecommerce.producto AS p
-  INNER JOIN Ecommerce.producto_especifico AS pe 
+  FROM ecommerce.producto AS p
+  INNER JOIN ecommerce.producto_especifico AS pe 
     ON p.id = pe.id_producto
   ${joinPromo}
   ${joinPromocion}

@@ -11,7 +11,7 @@ interface MarcaRow extends RowDataPacket {
 export async function GET() {
   try {
     const [rows] = await db.query<MarcaRow[]>(
-      "SELECT id, nombre, imagen_logo FROM Ecommerce.marcas"
+      "SELECT id, nombre, imagen_logo FROM ecommerce.marcas"
     );
     return NextResponse.json(rows);
   } catch (error) {

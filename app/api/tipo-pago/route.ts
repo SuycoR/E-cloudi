@@ -12,7 +12,7 @@ export async function GET() {
   try {
     const [rows] = await db.query<TipoPagoRow[]>(
       `SELECT id, valor 
-         FROM Ecommerce.tipo_pago`
+         FROM ecommerce.tipo_pago`
     );
     return NextResponse.json(rows);
   } catch (error) {

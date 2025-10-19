@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+simport { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { MetodoPagoRow } from "@/app/types/metodoPago";
 import { OkPacket, RowDataPacket } from "mysql2";
@@ -25,7 +25,7 @@ export async function PUT(
 
   try {
     await db.query<OkPacket>(
-      `UPDATE Ecommerce.usuario_metodo_pago
+      `UPDATE ecommerce.usuario_metodo_pago
          SET id_tipo_pago      = ?,
              proveedor         = ?,
              numero_cuenta     = ?,
@@ -38,12 +38,12 @@ export async function PUT(
     if (isPrimary) {
       // obtener userId del registro actualizado
       const [[row]] = await db.query<RowDataPacket[]>(
-        `SELECT id_usuario FROM Ecommerce.usuario_metodo_pago WHERE id = ?`,
+        `SELECT id_usuario FROM ecommerce.usuario_metodo_pago WHERE id = ?`,
         [id]
       );
       const userId = (row as any).id_usuario;
       await db.query<OkPacket>(
-        `UPDATE Ecommerce.usuario_metodo_pago
+        `UPDATE ecommerce.usuario_metodo_pago
          SET es_predeterminado = 0
          WHERE id_usuario = ? AND id <> ?`,
         [userId, id]
@@ -60,8 +60,8 @@ export async function PUT(
         ump.numero_cuenta,
         DATE_FORMAT(ump.fecha_vencimiento,'%Y-%m-%d') AS fecha_vencimiento,
         ump.es_predeterminado
-      FROM Ecommerce.usuario_metodo_pago AS ump
-      JOIN Ecommerce.tipo_pago AS tp
+      FROM ecommerce.usuario_metodo_pago AS ump
+      JOIN ecommerce.tipo_pago AS tp
         ON tp.id = ump.id_tipo_pago
       WHERE ump.id = ?`,
       [id]
@@ -86,7 +86,7 @@ export async function DELETE(
 
   try {
     await db.query<OkPacket>(
-      `DELETE FROM Ecommerce.usuario_metodo_pago WHERE id = ?`,
+      `DELETE FROM ecommerce.usuario_metodo_pago WHERE id = ?`,
       [idNum]
     );
     return NextResponse.json({ success: true });

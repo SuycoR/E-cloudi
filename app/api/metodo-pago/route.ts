@@ -21,8 +21,8 @@ export async function GET(req: Request) {
          ump.numero_cuenta,
          DATE_FORMAT(ump.fecha_vencimiento, '%Y-%m-%d') AS fecha_vencimiento,
          ump.es_predeterminado
-       FROM Ecommerce.usuario_metodo_pago AS ump
-       JOIN Ecommerce.tipo_pago AS tp
+       FROM ecommerce.usuario_metodo_pago AS ump
+       JOIN ecommerce.tipo_pago AS tp
          ON tp.id = ump.id_tipo_pago
        WHERE ump.id_usuario = ?`,
       [userId]
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
   try {
     const [result] = await db.query<OkPacket>(
-      `INSERT INTO Ecommerce.usuario_metodo_pago
+      `INSERT INTO ecommerce.usuario_metodo_pago
          (id_usuario, id_tipo_pago, proveedor, numero_cuenta, fecha_vencimiento, es_predeterminado)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [userId, tipoPagoId, proveedor, numeroCuenta, fechaVencimiento, isPrimary]
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
 
     if (isPrimary) {
       await db.query<OkPacket>(
-        `UPDATE Ecommerce.usuario_metodo_pago
+        `UPDATE ecommerce.usuario_metodo_pago
          SET es_predeterminado = 0
          WHERE id_usuario = ? AND id <> ?`,
         [userId, result.insertId]
@@ -78,8 +78,8 @@ export async function POST(req: Request) {
         ump.numero_cuenta,
         DATE_FORMAT(ump.fecha_vencimiento,'%Y-%m-%d') AS fecha_vencimiento,
         ump.es_predeterminado
-      FROM Ecommerce.usuario_metodo_pago AS ump
-      JOIN Ecommerce.tipo_pago AS tp
+      FROM ecommerce.usuario_metodo_pago AS ump
+      JOIN ecommerce.tipo_pago AS tp
         ON tp.id = ump.id_tipo_pago
       WHERE ump.id = ?
     `, [result.insertId]);

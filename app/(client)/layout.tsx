@@ -7,7 +7,7 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 
 
 export const metadata: Metadata = {
-  title: "Compx",
+  title: "E-Cloudi",
   description: "Descripción de mi aplicación",
 };
 

@@ -13,8 +13,8 @@ import bcrypt from "bcrypt";
 interface resultadoRow extends RowDataPacket {
     resultado: string // Para que lo arrojado por mi stored tenga un tipo de dato
 }
-
 const authOptions = {
+
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -36,6 +36,7 @@ const authOptions = {
                 const data = typeof resultadoJSON === "string"
                     ? JSON.parse(resultadoJSON)
                     : resultadoJSON ?? [];
+                console.log("Resultado JSON de la BD:", data);
                 /*  Ejemplo de data:
                 {
                     ok: true,
@@ -44,14 +45,14 @@ const authOptions = {
                         email: 'suycoriverap@gmail.com',
                         nombre: 'Pedro jesus',
                         apellido: 'Suyco rivera',
-                        password: '$2b$10$Y9eF5HphZmZtMP9FCZMQWeqo93lRbZ6trfzQAmZ6zwZ.0.8JQFoli',
+                        contrasena: '$2b$10$Y9eF5HphZmZtMP9FCZMQWeqo93lRbZ6trfzQAmZ6zwZ.0.8JQFoli',
                         telefono: '957199045',
                         identificacion: '72647844',
                         tipo_identificacion: 'DNI'
                     }
                 
                 */
-                const isPasswordValid = await bcrypt.compare(credentials?.password as string, data.usuario.password);
+                const isPasswordValid = await bcrypt.compare(credentials?.password as string, data.usuario.contrasena);
                 if (data.ok && isPasswordValid) {
                     return {
                         id: data.usuario.id,
@@ -100,7 +101,12 @@ const authOptions = {
 }
 
 // For NextAuth v5 beta - TypeScript workaround
+
+//const {handler,auth} = (NextAuth as any)(authOptions);
+//export const { GET, POST } = handler;
+//export {auth};
 const handler = (NextAuth as any)(authOptions);
 
-export const GET = handler;
-export const POST = handler;
+export const { auth, handlers: { GET, POST } } = handler;
+
+//export const { auth, handlers: { GET, POST } }

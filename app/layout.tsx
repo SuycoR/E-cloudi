@@ -3,7 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Compx",
+  title: "E-Cloudi",
   description: "Descripción de mi aplicación",
 };
 

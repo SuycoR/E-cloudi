@@ -6,6 +6,8 @@ import ProductVariations from "./ProductVariations";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
 import type { CartItem } from "@/app/types/itemCarrito";
+// Importando para google analytics
+import { sendGAEvent } from "@next/third-parties/google";
 
 function Breadcrumb({
   nivel_1,
@@ -403,6 +405,13 @@ const ProductDetail = (props: ProductDetailProps & { variations?: any[] }) => {
 
     try {
       await addItem(item);
+      sendGAEvent("event", "add_to_cart", {
+      item_id: props.id_producto_especifico,
+      item_name:  props.nombre,
+      category: "Productos", 
+      price: props.precio,
+      quantity: 1,
+    });
     } catch (error) {
       console.error("Error al agregar al carrito:", error);
     }

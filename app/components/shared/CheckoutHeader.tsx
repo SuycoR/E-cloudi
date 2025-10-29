@@ -7,9 +7,8 @@ import React from "react";
 
 const steps = [
   { href: "/venta/carro-compras", label: "Carrito de compras" },
-  { href: "/venta/direcciones", label: "Dirección de envío" },
-  { href: "/venta/metodo-pago", label: "Método de entrega" },
-  { href: "/venta/resumen", label: "Pago y resumen" },
+  { href: "/venta/metodo-pago", label: "Entrega y pago" },
+  { href: "/venta/resumen", label: "Confirmación" },
 ];
 
 export default function CheckoutHeader() {
@@ -32,7 +31,7 @@ export default function CheckoutHeader() {
               <ShoppingBag className="text-slate-700 w-4 h-4 sm:w-6 sm:h-6 lg:w-10 lg:h-10" />
             </div>
             <h1 className="text-slate-700 text-lg sm:text-xl lg:text-2xl font-bold">
-              CompX
+              StyleHub
             </h1>
           </button>
 
@@ -66,7 +65,8 @@ export default function CheckoutHeader() {
                       className={clsx(
                         "flex items-center justify-center w-8 h-8 rounded-full border-2 mb-3 font-bold text-sm transition-all duration-200",
                         {
-                          "border-gray-300 text-gray-400 bg-white": isNotStarted,
+                          "border-gray-300 text-gray-400 bg-white":
+                            isNotStarted,
                           "border-ebony-600 text-white bg-ebony-600": isCurrent,
                           "border-ebony-600 bg-ebony-600 text-white": isPast,
                         }

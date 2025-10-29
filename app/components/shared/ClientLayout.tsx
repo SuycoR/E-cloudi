@@ -6,6 +6,7 @@ import { CartProvider } from "@/app/context/CartContext";
 import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import ChatWidget from "./ChatWidget";
 
 export default function ClientLayout({
   children,
@@ -21,6 +22,7 @@ export default function ClientLayout({
       <CartProvider>
         {!hideNavbar && <Navbar />}
         {children}
+        <ChatWidget />
         <Footer />
       </CartProvider>
     </SessionProvider>

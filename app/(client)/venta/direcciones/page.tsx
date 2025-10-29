@@ -2,22 +2,13 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import {
-  MapPin,
-  Truck,
-  Store,
-  Plus,
-  Edit2,
-  Trash2,
-  Check,
-} from "lucide-react";
+import { MapPin, Truck, Store, Plus, Edit2, Trash2, Check } from "lucide-react";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { deleteDireccionHandler } from "@/app/utils/deleteDireccionHandler";
 import FormularioDireccion from "@/app/components/ui/FormularioDireccion";
 import { useCheckout } from "@/app/context/CheckoutContext";
 import { useCart } from "@/app/context/CartContext";
-import { crearPreferenciaMP } from "../metodo-pago/mercado-pago/actions";
 
 interface Direccion {
   id?: number;
@@ -34,7 +25,7 @@ interface Direccion {
 const STORES = [
   {
     id: 1,
-    name: "CompX San Isidro",
+    name: "StyleHub San Isidro",
     address: "Av. Conquistadores 456, San Isidro",
     hours: "L-S 9-20 h",
     available: true,
@@ -45,6 +36,7 @@ export default function DireccionesPage() {
   const { data: session } = useSession();
   const { cart } = useCart();
   const { orden, setOrden } = useCheckout();
+  const router = useRouter();
 
   // MÉTODOS DE ENTREGA
   const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">(
@@ -69,8 +61,7 @@ export default function DireccionesPage() {
 
   // CALCULAR SUBTOTAL Y TOTAL
   const subtotal = useMemo(
-    () =>
-      cart.reduce((acc, item) => acc + item.precio * item.cantidad, 0),
+    () => cart.reduce((acc, item) => acc + item.precio * item.cantidad, 0),
     [cart]
   );
 
@@ -81,22 +72,30 @@ export default function DireccionesPage() {
       ? subtotal + shippingCost
       : null;
 
-  // Actualizar orden en el contexto cuando cambian método o selección
+  // Mantiene el contexto sincronizado con la selección actual
   useEffect(() => {
     if (deliveryMethod === "delivery" && selectedAddress) {
-      setOrden({
-        ...orden,
+      const selected = directions.find((d) => d.id === selectedAddress);
+      setOrden((prev) => ({
+        ...prev,
         direccionEnvioId: selectedAddress,
         metodoEnvioId: 1,
-      });
+        direccionResumen: selected
+          ? formatAddress(selected)
+          : prev.direccionResumen,
+      }));
     } else if (deliveryMethod === "pickup") {
-      setOrden({
-        ...orden,
+      const store = STORES.find((s) => s.id === selectedStore);
+      setOrden((prev) => ({
+        ...prev,
         direccionEnvioId: null,
         metodoEnvioId: 2,
-      });
+        direccionResumen: store
+          ? `${store.name} - ${store.address}`
+          : prev.direccionResumen,
+      }));
     }
-  }, [deliveryMethod, selectedAddress, selectedStore, orden, setOrden]);
+  }, [deliveryMethod, selectedAddress, selectedStore, directions, setOrden]);
 
   // Consultar costo de envío dinámicamente
   useEffect(() => {
@@ -118,7 +117,9 @@ export default function DireccionesPage() {
           const parsed = parseFloat(costo);
           costo = isNaN(parsed) ? null : parsed;
         }
-        setShippingCost(typeof costo === "number" && !isNaN(costo) ? costo : null);
+        setShippingCost(
+          typeof costo === "number" && !isNaN(costo) ? costo : null
+        );
       })
       .catch(() => {
         setShippingError("Error al calcular el costo de envío");
@@ -132,7 +133,9 @@ export default function DireccionesPage() {
     if (!session?.user?.id) return;
     const fetchDirections = async () => {
       try {
-        const res = await fetch(`/api/direccion?usuario_id=${session.user!.id}`);
+        const res = await fetch(
+          `/api/direccion?usuario_id=${session.user!.id}`
+        );
         if (!res.ok) throw new Error("Error al obtener las direcciones");
         const data: Direccion[] = await res.json();
         setDirections(data);
@@ -148,10 +151,16 @@ export default function DireccionesPage() {
   }, [session]);
 
   const formatAddress = (d: Direccion) => {
-    const line1 = [d.piso && `Piso ${d.piso}`, d.lote && `Lote ${d.lote}`, d.calle]
+    const line1 = [
+      d.piso && `Piso ${d.piso}`,
+      d.lote && `Lote ${d.lote}`,
+      d.calle,
+    ]
       .filter(Boolean)
       .join(" ");
-    const line2 = [d.distrito, d.provincia, d.departamento].filter(Boolean).join(", ");
+    const line2 = [d.distrito, d.provincia, d.departamento]
+      .filter(Boolean)
+      .join(", ");
     return `${line1}${line1 && line2 ? ", " : ""}${line2}`;
   };
 
@@ -186,44 +195,24 @@ export default function DireccionesPage() {
     }
   };
 
-  const handleContinue = async () => {
-    // Actualizar contexto con subtotal y total reales
-    setOrden({
-      ...orden,
-      subtotal,
-      costoEnvio: shippingCost ?? 0,
-      total: total ?? subtotal,
-    });
+  const handleContinue = () => {
+    const shippingValue =
+      deliveryMethod === "delivery"
+        ? typeof shippingCost === "number" && !isNaN(shippingCost)
+          ? shippingCost
+          : 0
+        : 0;
 
-    // Crear preferencia en MercadoPago
-    await crearPreferenciaMP({
-      cart: cart.map(
-        ({
-          productId,
-          nombre,
-          cantidad,
-          precio,
-          precioOriginal,
-          descuento,
-        }) => ({
-          productId,
-          nombre,
-          cantidad,
-          precio,
-          precioOriginal,
-          descuento,
-          id_producto_especifico: productId,
-        })
-      ),
-      metadata: {
-        usuarioId: orden.usuarioId,
-        direccionEnvioId: orden.direccionEnvioId,
-        metodoEnvioId: orden.metodoEnvioId,
-        subtotal,
-        costoEnvio: shippingCost ?? 0,
-        total: total ?? subtotal,
-      },
-    });
+    setOrden((prev) => ({
+      ...prev,
+      subtotal,
+      costoEnvio: shippingValue,
+      total: subtotal + shippingValue,
+      destinatario:
+        prev.destinatario || session?.user?.name || prev.destinatario,
+    }));
+
+    router.push("/venta/metodo-pago");
   };
 
   if (loading)
@@ -497,15 +486,17 @@ export default function DireccionesPage() {
                 <div className="flex justify-between text-ebony-600">
                   <span>Envío</span>
                   <span>
-                    {deliveryMethod === "pickup"
-                      ? "Gratis"
-                      : shippingLoading
-                      ? <span className="text-ebony-400">Calculando…</span>
-                      : shippingError
-                      ? <span className="text-red-600">Error</span>
-                      : shippingCost !== null
-                      ? `S/ ${shippingCost.toFixed(2)}`
-                      : "--"}
+                    {deliveryMethod === "pickup" ? (
+                      "Gratis"
+                    ) : shippingLoading ? (
+                      <span className="text-ebony-400">Calculando…</span>
+                    ) : shippingError ? (
+                      <span className="text-red-600">Error</span>
+                    ) : shippingCost !== null ? (
+                      `S/ ${shippingCost.toFixed(2)}`
+                    ) : (
+                      "--"
+                    )}
                   </span>
                 </div>
                 <hr className="border-ebony-200" />

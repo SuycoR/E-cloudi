@@ -14,18 +14,33 @@ interface Orden {
   subtotal: number;
   costoEnvio: number;
   total?: number; // opcional, se puede calcular con un trigger maybe
+  email?: string;
+  nombre?: string;
+  apellido?: string;
+  tipoDocumento?: string;
+  numeroDocumento?: string;
+  telefono?: string;
+  aceptaTerminos?: boolean;
+  direccionResumen?: string;
+  destinatario?: string;
+  fechaEntrega?: string;
+  franjaEntrega?: string;
+  metodoPagoNombre?: string;
 }
 
 interface CheckoutContextProps {
   orden: Orden;
-  setOrden: (orden: Orden) => void;
+  setOrden: React.Dispatch<React.SetStateAction<Orden>>;
 }
 
-const CheckoutContext = createContext<CheckoutContextProps | undefined>(undefined);
+const CheckoutContext = createContext<CheckoutContextProps | undefined>(
+  undefined
+);
 
 export const useCheckout = () => {
   const context = useContext(CheckoutContext);
-  if (!context) throw new Error("useCheckout debe usarse dentro de un CheckoutProvider");
+  if (!context)
+    throw new Error("useCheckout debe usarse dentro de un CheckoutProvider");
   return context;
 };
 
@@ -39,6 +54,18 @@ export const CheckoutProvider = ({ children }: { children: ReactNode }) => {
     subtotal: 0,
     costoEnvio: 0,
     total: 0, // puedes calcularlo más adelante
+    email: "",
+    nombre: "",
+    apellido: "",
+    tipoDocumento: "",
+    numeroDocumento: "",
+    telefono: "",
+    aceptaTerminos: false,
+    direccionResumen: "",
+    destinatario: "",
+    fechaEntrega: "",
+    franjaEntrega: "",
+    metodoPagoNombre: "",
   });
 
   return (

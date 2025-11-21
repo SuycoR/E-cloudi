@@ -11,8 +11,8 @@ const COLOR_MAP: Record<string, string> = {
   rojo: "#E53935",
   azul: "#1E88E5",
   verde: "#43A047",
-  negro: "#222",
-  blanco: "#fff",
+  negro: "#222222",
+  blanco: "#ffffff",
   gris: "#BDBDBD",
   amarillo: "#FDD835",
   naranja: "#FB8C00",
@@ -23,7 +23,6 @@ const COLOR_MAP: Record<string, string> = {
   lila: "#BA68C8",
   dorado: "#FFD700",
   plateado: "#B0BEC5",
-  // ...agrega más según catálogo
 };
 
 export interface ProductVariationItem {
@@ -41,8 +40,8 @@ export interface ProductVariationsProps {
 
 /**
  * Muestra una fila de variaciones de color como swatches seleccionables.
- * @param variations Array de opciones de variación (ProductVariationItem[])
- * @param selectedId id_producto_especifico seleccionado
+ * Este componente deduplica por nombre de color (normalizado toLowerCase + trim)
+ * para que cada color solo aparezca una vez.
  */
 const ProductVariations: React.FC<ProductVariationsProps> = ({
   variations,
@@ -54,17 +53,31 @@ const ProductVariations: React.FC<ProductVariationsProps> = ({
     setCurrentId(selectedId);
   }, [selectedId]);
 
+  // Dedupe variations by normalized color name while preserving first occurrence order
+  const uniqueByColor: ProductVariationItem[] = [];
+  const seen = new Set<string>();
+  for (const v of variations || []) {
+    const colorKey = (v?.especificaciones?.color || "")
+      .toString()
+      .trim()
+      .toLowerCase();
+    if (!colorKey) continue;
+    if (seen.has(colorKey)) continue;
+    seen.add(colorKey);
+    uniqueByColor.push(v);
+  }
+
   return (
     <div
-      className="flex flex-row gap-3 my-4"
+      className="flex flex-row gap-3 my-4 overflow-x-auto"
       role="radiogroup"
       aria-label="Variaciones de color"
     >
-      {variations.map((v) => {
-        const colorKey = (v.especificaciones.color || "").trim().toLowerCase();
-        if (!colorKey) {
-          return null;
-        }
+      {uniqueByColor.map((v) => {
+        const colorKey = (v.especificaciones.color || "")
+          .toString()
+          .trim()
+          .toLowerCase();
         const color = COLOR_MAP[colorKey] || "#eee";
         const selected = currentId === v.id_producto_especifico;
         return (
@@ -73,7 +86,7 @@ const ProductVariations: React.FC<ProductVariationsProps> = ({
             href={`/productos/${v.id_producto_especifico}`}
             aria-label={v.especificaciones.color || undefined}
             scroll={true}
-            prefetch={true}
+            prefetch={false}
             className="flex flex-col items-center cursor-pointer focus:outline-none group"
             style={{ minWidth: 48 }}
           >

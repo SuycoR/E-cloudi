@@ -5,7 +5,8 @@ import type { ProductDetailProps } from "@/app/types/props";
 async function getProduct(id: string) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   const res = await fetch(`${baseUrl}/api/productos/${id}`, {
-    cache: "no-store",
+    // cache for 60s to improve perceived navigation performance (ISR)
+    next: { revalidate: 60 },
   });
   if (!res.ok) throw new Error("Error al obtener el producto");
   const data = await res.json();
@@ -15,9 +16,9 @@ async function getProduct(id: string) {
 export default async function VirtualTryOnPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
   let product: ProductDetailProps | null = null;
 
   try {

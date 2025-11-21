@@ -35,7 +35,11 @@ function Breadcrumb({
           itemScope
           itemType="https://schema.org/ListItem"
         >
-          <Link href="/" itemProp="item" className="hover:text-gray-800 transition-colors">
+          <Link
+            href="/"
+            itemProp="item"
+            className="hover:text-gray-800 transition-colors"
+          >
             <span itemProp="name">Inicio</span>
           </Link>
           <meta itemProp="position" content="1" />
@@ -48,7 +52,11 @@ function Breadcrumb({
               itemScope
               itemType="https://schema.org/ListItem"
             >
-              <Link href={`/categoria/${1}/${id_cat_n1}`} itemProp="item" className="hover:text-gray-800 transition-colors">
+              <Link
+                href={`/categoria/${1}/${id_cat_n1}`}
+                itemProp="item"
+                className="hover:text-gray-800 transition-colors"
+              >
                 <span itemProp="name">{nivel_1}</span>
               </Link>
               <meta itemProp="position" content="2" />
@@ -63,7 +71,11 @@ function Breadcrumb({
               itemScope
               itemType="https://schema.org/ListItem"
             >
-              <Link href={`/categoria/${2}/${id_cat_n2}`} itemProp="item" className="hover:text-gray-800 transition-colors">
+              <Link
+                href={`/categoria/${2}/${id_cat_n2}`}
+                itemProp="item"
+                className="hover:text-gray-800 transition-colors"
+              >
                 <span itemProp="name">
                   {nivel_2.length > 12 ? nivel_2.slice(0, 7) + "..." : nivel_2}
                 </span>
@@ -80,7 +92,11 @@ function Breadcrumb({
               itemScope
               itemType="https://schema.org/ListItem"
             >
-              <Link href={`/categoria/${3}/${id_cat_n3}`} itemProp="item" className="hover:text-gray-800 transition-colors">
+              <Link
+                href={`/categoria/${3}/${id_cat_n3}`}
+                itemProp="item"
+                className="hover:text-gray-800 transition-colors"
+              >
                 <span itemProp="name">
                   {nivel_3.length > 12 ? nivel_3.slice(0, 7) + "..." : nivel_3}{" "}
                 </span>
@@ -201,7 +217,9 @@ function ProductInfo({
               </span>
               <meta itemProp="priceCurrency" content="PEN" />
             </span>
-            <span className="text-sm line-through text-gray-500 bg-gray-100 px-2 py-1 rounded">S/ {precio}</span>
+            <span className="text-sm line-through text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              S/ {precio}
+            </span>
           </>
         ) : (
           <span
@@ -246,6 +264,17 @@ function ProductInfo({
           Añadir al carrito
         </button>
       </div>
+      <div className="flex w-full my-2">
+        {/* Virtual try-on button: opens the product-specific virtual try-on room */}
+        {id_producto_especifico && (
+          <a
+            href={`/productos/${id_producto_especifico}/virtual-try-on`}
+            className="w-full inline-flex justify-center items-center gap-2 border border-blue-600 text-blue-600 font-semibold py-3 px-6 rounded-xl hover:bg-blue-50 transition-colors"
+          >
+            Virtual try on
+          </a>
+        )}
+      </div>
     </section>
   );
 }
@@ -266,20 +295,30 @@ function ProductSpecs({
       itemType="https://schema.org/PropertyValue"
     >
       <li className="text-gray-700 flex items-center gap-2">
-        <strong className="text-gray-900">Marca:</strong> <span itemProp="value" className="bg-gray-100 px-2 py-1 rounded text-sm">{marca}</span>
-      </li>
-      <li className="text-gray-700 flex items-center gap-2">
-        <strong className="text-gray-900">SKU:</strong> <span itemProp="value" className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">{SKU}</span>
+        <strong className="text-gray-900">SKU:</strong>{" "}
+        <span
+          itemProp="value"
+          className="bg-gray-100 px-2 py-1 rounded text-sm font-mono"
+        >
+          {SKU}
+        </span>
       </li>
       {especificaciones &&
         Object.entries(especificaciones).map(([key, value]) => (
           <li key={key} className="text-gray-700 flex items-center gap-2">
-            <strong className="text-gray-900">{key.charAt(0).toUpperCase() + key.slice(1)}:</strong>{" "}
-            <span className="bg-gray-100 px-2 py-1 rounded text-sm">{String(value)}</span>
+            <strong className="text-gray-900">
+              {key.charAt(0).toUpperCase() + key.slice(1)}:
+            </strong>{" "}
+            <span className="bg-gray-100 px-2 py-1 rounded text-sm">
+              {String(value)}
+            </span>
           </li>
         ))}
       <li className="text-gray-700 flex items-center gap-2">
-        <strong className="text-gray-900">En stock:</strong> <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded font-semibold text-sm">{cantidad_stock}</span>
+        <strong className="text-gray-900">En stock:</strong>{" "}
+        <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded font-semibold text-sm">
+          {cantidad_stock}
+        </span>
       </li>
       {variations && variations.length > 0 && (
         <li>
@@ -321,7 +360,9 @@ function Contador({
         >
           -
         </button>
-        <span className="text-xl font-bold min-w-[3rem] text-center bg-gray-100 px-3 py-2 rounded-lg">{cantidad}</span>
+        <span className="text-xl font-bold min-w-[3rem] text-center bg-gray-100 px-3 py-2 rounded-lg">
+          {cantidad}
+        </span>
         <button
           onClick={incrementar}
           className="bg-gray-200 hover:bg-white hover:border-gray-400 border-2 border-transparent text-gray-700 hover:text-gray-900 font-semibold w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg"
@@ -406,12 +447,12 @@ const ProductDetail = (props: ProductDetailProps & { variations?: any[] }) => {
     try {
       await addItem(item);
       sendGAEvent("event", "add_to_cart", {
-      item_id: props.id_producto_especifico,
-      item_name:  props.nombre,
-      category: "Productos", 
-      price: props.precio,
-      quantity: 1,
-    });
+        item_id: props.id_producto_especifico,
+        item_name: props.nombre,
+        category: "Productos",
+        price: props.precio,
+        quantity: 1,
+      });
     } catch (error) {
       console.error("Error al agregar al carrito:", error);
     }

@@ -3,7 +3,8 @@ import ProductSection from "@/app/components/products/ProductSection";
 async function getProduct(id: string) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   const res = await fetch(`${baseUrl}/api/productos/${id}`, {
-    cache: "no-store",
+    // cache for 60s to improve perceived navigation performance (ISR)
+    next: { revalidate: 60 },
   });
   if (!res.ok) throw new Error("Error al obtener el producto");
   const data = await res.json();
@@ -13,7 +14,7 @@ async function getProduct(id: string) {
 async function getVariations(id: string) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   const res = await fetch(`${baseUrl}/api/productos/variaciones/${id}`, {
-    cache: "no-store",
+    next: { revalidate: 60 },
   });
   if (!res.ok) throw new Error("Error al obtener las variaciones del producto");
   const variations = await res.json();
@@ -31,9 +32,8 @@ export default async function ProductPage({
 
   return (
     <>
-      
       <ProductDetail {...product} variations={variations} />
-     
+
       <ProductSection
         title="Otros productos en la misma categoria"
         filterType="bestSellers"

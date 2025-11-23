@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useCart } from '@/app/context/CartContext';
-import { useStock } from '@/app/hooks/useStock';
-import { ShoppingCart } from 'lucide-react';
-import type { CartItem } from '@/app/types/itemCarrito';
+import { useCart } from "@/app/context/CartContext";
+import { useStock } from "@/app/hooks/useStock";
+import { ShoppingCart } from "lucide-react";
+import type { CartItem } from "@/app/types/itemCarrito";
 // Para enviar a google analytics
 import { sendGAEvent } from "@next/third-parties/google";
-
 
 interface AddToCartButtonProps {
   productId: number | undefined;
   nombre: string;
   precio: number;
+  precioOriginal?: number;
   imagen?: string;
   className?: string;
 }
@@ -20,8 +20,9 @@ export const AddToCartButton = ({
   productId,
   nombre,
   precio,
-  imagen = '',
-  className = '',
+  precioOriginal,
+  imagen = "",
+  className = "",
 }: AddToCartButtonProps) => {
   const { cart, addItem } = useCart();
 
@@ -35,45 +36,50 @@ export const AddToCartButton = ({
 
   const handleAddToCart = async () => {
     if (productId === undefined) {
-      console.error('ID de producto indefinido');
+      console.error("ID de producto indefinido");
       return;
     }
 
     if (loading) {
-      alert('Verificando stock...');
+      alert("Verificando stock...");
       return;
     }
 
     if (stock === null || stock <= 0) {
-      alert('Producto sin stock disponible.');
+      alert("Producto sin stock disponible.");
       return;
     }
 
     if (cantidadEnCarrito >= stock) {
-      alert('Ya agregaste el máximo disponible de este producto.');
+      alert("Ya agregaste el máximo disponible de este producto.");
       return;
     }
+
+    const basePrice = precioOriginal ?? precio;
+    const descuento = basePrice > 0 ? 1 - precio / basePrice : 0;
 
     const item: CartItem = {
       productId,
       nombre,
-      descripcion: '',
-      image_producto: imagen || '',
+      descripcion: "",
+      image_producto: imagen || "",
       cantidad: 1,
       precio,
+      precioOriginal: basePrice,
+      descuento: descuento > 0 ? Number(descuento.toFixed(4)) : undefined,
     };
 
     try {
       await addItem(item);
       sendGAEvent("event", "add_to_cart", {
-      item_id: productId,
-      item_name: nombre,
-      category: "Productos", 
-      price: precio,
-      quantity: 1,
-    });
+        item_id: productId,
+        item_name: nombre,
+        category: "Productos",
+        price: precio,
+        quantity: 1,
+      });
     } catch (error) {
-      console.error('Error al agregar al carrito:', error);
+      console.error("Error al agregar al carrito:", error);
     }
   };
 
@@ -86,12 +92,12 @@ export const AddToCartButton = ({
       disabled={disabled}
       title={
         loading
-          ? 'Cargando stock...'
+          ? "Cargando stock..."
           : stock === 0
-          ? 'Sin stock disponible'
+          ? "Sin stock disponible"
           : cantidadEnCarrito >= (stock ?? 0)
-          ? 'Cantidad máxima alcanzada'
-          : 'Agregar al carrito'
+          ? "Cantidad máxima alcanzada"
+          : "Agregar al carrito"
       }
       className={`p-1.5 sm:p-2 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >

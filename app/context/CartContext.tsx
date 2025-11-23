@@ -88,43 +88,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     dispatch({ type: "SET_ITEMS", payload: items });
   };
 
-  // Auxiliar para traer los descuentos desde la API
-  async function applyDiscounts(items: CartItem[]): Promise<CartItem[]> {
-    try {
-      const res = await fetch("/api/descuentos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productIds: items.map((i) => i.productId) }),
-      });
-      const descuentos = await res.json();
-
-      // Mapear id → descuento (parseFloat!)
-      const descuentosMap = new Map<number, number>();
-      descuentos.forEach((d: { id: number; descuento: string }) => {
-        descuentosMap.set(d.id, parseFloat(d.descuento));
-      });
-
-      // Aplicar a los items
-      return items.map((item) => {
-        const descuento = descuentosMap.get(item.productId) ?? 0;
-        const precioOriginal = item.precio;
-        const precioConDescuento = parseFloat(
-          (precioOriginal * (1 - descuento)).toFixed(2)
-        );
-
-        return {
-          ...item,
-          precioOriginal,
-          descuento,
-          precio: precioConDescuento,
-        };
-      });
-    } catch (err) {
-      console.error("Error aplicando descuentos:", err);
-      return items;
-    }
-  }
-
   // 1) Cargar inicialmente los items desde la API
   useEffect(() => {
     // 1a) Hydrate from localStorage synchronously so UI shows immediately
@@ -146,8 +109,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const fetchCart = async () => {
       try {
         const items = await fetchCartItems();
-        const updatedItems = await applyDiscounts(items);
-        dispatch({ type: "SET_ITEMS", payload: updatedItems });
+        dispatch({ type: "SET_ITEMS", payload: items });
       } catch (err) {
         console.error(err);
       }

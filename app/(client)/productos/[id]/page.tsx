@@ -1,34 +1,31 @@
 import ProductDetail from "@/app/components/products/ProductDetail";
 import ProductSection from "@/app/components/products/ProductSection";
-async function getProduct(id: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  const res = await fetch(`${baseUrl}/api/productos/${id}`, {
-    // cache for 60s to improve perceived navigation performance (ISR)
-    next: { revalidate: 60 },
-  });
-  if (!res.ok) throw new Error("Error al obtener el producto");
-  const data = await res.json();
-  return data;
-}
+import {
+  fetchProductDetailById,
+  fetchProductVariationsByProductId,
+} from "@/lib/products";
+import { notFound } from "next/navigation";
 
-async function getVariations(id: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  const res = await fetch(`${baseUrl}/api/productos/variaciones/${id}`, {
-    next: { revalidate: 60 },
-  });
-  if (!res.ok) throw new Error("Error al obtener las variaciones del producto");
-  const variations = await res.json();
-  return variations;
-}
 export default async function ProductPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const { id } = params;
-  const data = await getProduct(id);
-  const variations = await getVariations(id);
-  const product = data[0];
+  const productId = Number(params.id);
+  if (Number.isNaN(productId)) {
+    notFound();
+  }
+
+  const [productRows, variations] = await Promise.all([
+    fetchProductDetailById(productId),
+    fetchProductVariationsByProductId(productId),
+  ]);
+
+  const product = productRows?.[0];
+
+  if (!product) {
+    notFound();
+  }
 
   return (
     <>

@@ -4,9 +4,9 @@ import type { ProductCardProps } from "@/app/types/props";
 import Loadingspinner from "../ui/LoadingSpinner";
 import { useCart } from "@/app/context/CartContext";
 import type { CartItem } from "@/app/types/itemCarrito";
-import { useStock } from '@/app/hooks/useStock';
+import { useStock } from "@/app/hooks/useStock";
 import Link from "next/link";
-import { AddToCartButton } from '@/app/components/ui/AddToCartButton';
+import { AddToCartButton } from "@/app/components/ui/AddToCartButton";
 
 const ProductCard = ({
   producto_id,
@@ -86,12 +86,11 @@ const ProductCard = ({
             isHovered ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >
-          
-
           <AddToCartButton
             productId={id_producto_especifico}
             nombre={nombre}
-            precio={precio}
+            precio={parseFloat(precioFinal.toFixed(2))}
+            precioOriginal={precio}
             imagen={imagen_producto}
             className="your-optional-custom-classes"
           />

@@ -169,6 +169,7 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
 
   const handleAddToCart = async () => {
     if (!product.id_producto_especifico) return;
+    const descuento = product.descuento ?? 0;
     const item: CartItem = {
       productId: product.id_producto_especifico,
       nombre: product.nombre,
@@ -176,6 +177,8 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
       image_producto: product.imagen_producto || "",
       cantidad: 1,
       precio: finalPrice,
+      precioOriginal: basePrice,
+      descuento,
     };
 
     try {

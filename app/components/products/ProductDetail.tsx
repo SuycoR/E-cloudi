@@ -435,13 +435,21 @@ const ProductDetail = (props: ProductDetailProps & { variations?: any[] }) => {
       return;
     }
 
+    const descuento = props.descuento ?? 0;
+    const precioOriginal = props.precio ?? 0;
+    const precioConDescuento = parseFloat(
+      (precioOriginal * (1 - descuento)).toFixed(2)
+    );
+
     const item: CartItem = {
       productId: props.id_producto_especifico,
       nombre: props.nombre,
-      descripcion: "",
+      descripcion: props.descripcion || "",
       image_producto: props.imagen_producto || "",
-      cantidad, // Usar la cantidad seleccionada
-      precio: props.precio,
+      cantidad,
+      precio: descuento ? precioConDescuento : precioOriginal,
+      precioOriginal,
+      descuento,
     };
 
     try {

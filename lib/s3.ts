@@ -1,4 +1,8 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
 import type { PutObjectCommandInput } from "@aws-sdk/client-s3";
 
 const REGION = process.env.AWS_REGION;
@@ -40,4 +44,16 @@ export async function uploadBufferToS3(
   const command = new PutObjectCommand(input);
   const result = await s3Client.send(command);
   return result;
+}
+
+export async function deleteObjectFromS3(key: string) {
+  if (!BUCKET)
+    throw new Error("S3 bucket not configured (AWS_S3_BUCKET missing)");
+
+  const command = new DeleteObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+  });
+
+  await s3Client.send(command);
 }

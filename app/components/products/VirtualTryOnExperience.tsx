@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   UploadCloud,
@@ -13,6 +13,7 @@ import { useCart } from "@/app/context/CartContext";
 import type { ProductDetailProps } from "@/app/types/props";
 import type { CartItem } from "@/app/types/itemCarrito";
 import { sendGAEvent } from "@next/third-parties/google";
+import type { UserAvatarRecord } from "@/types/avatar";
 
 interface VirtualTryOnExperienceProps {
   product: ProductDetailProps;
@@ -45,6 +46,60 @@ const BASE_GALLERY: ResultImage[] = [
 const FALLBACK_IMAGE =
   "https://img.freepik.com/vector-gratis/ilustracion-icono-doodle-engranaje_53876-5596.jpg?semt=ais_hybrid&w=740";
 
+const PERSONALIZED_IMAGE_ID = "user-avatar";
+
+const isObjectUrl = (value: string | null) =>
+  Boolean(value && value.startsWith("blob:"));
+
+const shouldSetCrossOrigin = (src: string) =>
+  !(src.startsWith("data:") || src.startsWith("blob:"));
+
+const loadImage = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    if (shouldSetCrossOrigin(src)) {
+      img.crossOrigin = "anonymous";
+    }
+    img.onload = () => resolve(img);
+    img.onerror = () =>
+      reject(new Error(`No se pudo cargar la imagen de ${src}`));
+    img.src = src;
+  });
+
+async function composeLookPreview(baseSrc: string, garmentSrc: string) {
+  const [avatarImg, garmentImg] = await Promise.all([
+    loadImage(baseSrc),
+    loadImage(garmentSrc),
+  ]);
+
+  const width = avatarImg.naturalWidth || 900;
+  const height = avatarImg.naturalHeight || 1200;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas context no disponible");
+
+  ctx.drawImage(avatarImg, 0, 0, width, height);
+
+  const garmentWidth = garmentImg.naturalWidth || width;
+  const garmentHeight = garmentImg.naturalHeight || height;
+  const overlayWidth = Math.min(width * 0.78, garmentWidth);
+  const overlayHeight = (overlayWidth / garmentWidth) * garmentHeight;
+
+  ctx.globalAlpha = 0.7;
+  ctx.drawImage(
+    garmentImg,
+    (width - overlayWidth) / 2,
+    Math.max(height * 0.15, height / 2 - overlayHeight / 2),
+    overlayWidth,
+    overlayHeight
+  );
+  ctx.globalAlpha = 1;
+
+  return canvas.toDataURL("image/png");
+}
+
 const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
   product,
 }) => {
@@ -62,6 +117,11 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
   const [modalInsertedIds, setModalInsertedIds] = useState<number[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
+  const [avatarRecord, setAvatarRecord] =
+    useState<UserAvatarRecord | null>(null);
+  const [fusionPreview, setFusionPreview] = useState<string | null>(null);
+  const [personalizedAutoSelected, setPersonalizedAutoSelected] =
+    useState(false);
 
   const basePrice = useMemo(() => {
     const priceNumber = Number(product.precio ?? 0);
@@ -105,14 +165,147 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
 
   useEffect(() => {
     return () => {
-      if (uploadedPreview) URL.revokeObjectURL(uploadedPreview);
+      if (uploadedPreview && isObjectUrl(uploadedPreview)) {
+        URL.revokeObjectURL(uploadedPreview);
+      }
     };
   }, [uploadedPreview]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadAvatar = async () => {
+      try {
+        const response = await fetch("/api/avatar");
+        if (cancelled) return;
+        if (!response.ok) {
+          if (response.status !== 401) {
+            console.warn("No se pudo obtener el avatar guardado");
+          }
+          setAvatarRecord(null);
+          return;
+        }
+        const data = await response.json();
+        setAvatarRecord(data.avatar ?? null);
+      } catch (error) {
+        if (!cancelled) {
+          console.warn("Error al cargar avatar para try-on", error);
+        }
+      }
+    };
+
+    loadAvatar();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (avatarRecord?.imagenAvatar && !uploadedFile) {
+      setUploadedPreview(avatarRecord.imagenAvatar);
+    }
+  }, [avatarRecord?.imagenAvatar, uploadedFile]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!product.imagen_producto) {
+      setFusionPreview(null);
+      return;
+    }
+
+    const baseSource = uploadedPreview || avatarRecord?.imagenAvatar;
+    if (!baseSource) {
+      setFusionPreview(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const buildPreview = async () => {
+      try {
+        const fused = await composeLookPreview(
+          baseSource,
+          product.imagen_producto as string
+        );
+        if (!cancelled) {
+          setFusionPreview(fused);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.warn(
+            "No fue posible fusionar la prenda con tu avatar",
+            error
+          );
+          setFusionPreview(null);
+        }
+      }
+    };
+
+    buildPreview();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [uploadedPreview, avatarRecord?.imagenAvatar, product.imagen_producto]);
+
+  const personalizedResult = useMemo(() => {
+    const personalizedUrl = fusionPreview ?? avatarRecord?.imagenAvatar;
+    if (!personalizedUrl) return null;
+    return {
+      id: PERSONALIZED_IMAGE_ID,
+      label: fusionPreview ? "Look personalizado" : "Mi avatar",
+      url: personalizedUrl,
+    } satisfies ResultImage;
+  }, [fusionPreview, avatarRecord?.imagenAvatar]);
+
+  const displayedResults = useMemo(() => {
+    if (!personalizedResult) return results;
+    const others = results.filter((img) => img.id !== PERSONALIZED_IMAGE_ID);
+    return [personalizedResult, ...others];
+  }, [personalizedResult, results]);
+
+  useEffect(() => {
+    if (!personalizedResult) {
+      setPersonalizedAutoSelected(false);
+      return;
+    }
+    if (!personalizedAutoSelected) {
+      setSelectedResult(personalizedResult);
+      setPersonalizedAutoSelected(true);
+    }
+  }, [personalizedResult, personalizedAutoSelected]);
+
+  useEffect(() => {
+    if (!displayedResults.length) return;
+    if (!selectedResult) {
+      setSelectedResult(displayedResults[0]);
+      return;
+    }
+    const stillExists = displayedResults.some(
+      (image) => image.id === selectedResult.id
+    );
+    if (!stillExists) {
+      setSelectedResult(displayedResults[0]);
+    }
+  }, [displayedResults, selectedResult]);
+
+  const fetchRemoteImageAsFile = useCallback(async (url: string) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error("No pudimos leer tu avatar guardado");
+    }
+    const blob = await response.blob();
+    const extension = blob.type.split("/")[1] ?? "jpg";
+    return new File([blob], `avatar-${Date.now()}.${extension}`, {
+      type: blob.type || "image/jpeg",
+    });
+  }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;
     setUploadedFile(file);
-    if (uploadedPreview) {
+    if (uploadedPreview && isObjectUrl(uploadedPreview)) {
       URL.revokeObjectURL(uploadedPreview);
     }
     if (file) {
@@ -131,10 +324,24 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
   };
 
   const handleGenerate = async () => {
-    if (!uploadedFile) {
-      setStatusMessage("Primero sube una foto para que podamos analizarla.");
+    let fileToUse = uploadedFile;
+
+    if (!fileToUse && avatarRecord?.imagenAvatar) {
+      try {
+        setStatusMessage("Cargando tu avatar guardado...");
+        fileToUse = await fetchRemoteImageAsFile(avatarRecord.imagenAvatar);
+      } catch (error) {
+        console.error("No fue posible leer el avatar guardado", error);
+        setStatusMessage("No pudimos usar tu avatar guardado. Sube una foto nueva.");
+        return;
+      }
+    }
+
+    if (!fileToUse) {
+      setStatusMessage("Primero sube una foto o crea tu avatar virtual.");
       return;
     }
+
     setIsGenerating(true);
     setStatusMessage("Analizando tu foto y aplicando la prenda...");
     try {
@@ -142,7 +349,7 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
       try {
         const form = new FormData();
         // send original photo under field name 'original' so server stores it in uploads/
-        form.append("original", uploadedFile);
+        form.append("original", fileToUse);
         await fetch("/api/uploads", { method: "POST", body: form });
       } catch (e) {
         console.warn(
@@ -153,7 +360,6 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
 
       const generated = await simulateNanobananaCall();
       setResults(generated);
-      setSelectedResult(generated[0]);
       setStatusMessage("¡Listo! Explora los diferentes ángulos generados.");
     } catch (error) {
       console.error("Virtual try-on error:", error);
@@ -269,9 +475,9 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
             />
           </label>
 
-          {uploadedPreview && !isGenerating && (
+          {(uploadedPreview || avatarRecord?.imagenAvatar) && !isGenerating && (
             <span className="absolute bottom-6 right-6 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-slate-700 shadow">
-              {uploadedFile?.name}
+              {uploadedFile?.name || (avatarRecord ? "Avatar guardado" : "")}
             </span>
           )}
 
@@ -292,7 +498,7 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
           </h2>
           <div className="flex flex-col gap-4">
             {/* show exactly two stacked thumbnails */}
-            {results.slice(0, 2).map((image) => {
+            {displayedResults.slice(0, 2).map((image) => {
               const isActive = image.id === selectedResult?.id;
               return (
                 <button
@@ -351,8 +557,8 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
                     form.append("guarda_resultado", "si");
 
                     // Convert each generated URL to a File and append
-                    for (let i = 0; i < results.length; i++) {
-                      const url = results[i].url;
+                    for (let i = 0; i < displayedResults.length; i++) {
+                      const url = displayedResults[i].url;
                       try {
                         let file: File | null = null;
                         if (url.startsWith("data:")) {
@@ -378,7 +584,7 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
                       } catch (e) {
                         console.warn(
                           "Failed to convert/attach image",
-                          results[i].url,
+                          displayedResults[i].url,
                           e
                         );
                         continue;
@@ -435,18 +641,22 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
               <div className="flex items-center gap-3">
                 <Sparkles className="h-5 w-5 text-sky-400" />
                 <p className="text-sm font-semibold text-slate-200">
-                  {uploadedFile ? "Foto lista" : "Sube una foto"}
+                  {uploadedFile
+                    ? "Foto lista"
+                    : avatarRecord?.imagenAvatar
+                    ? "Avatar guardado listo"
+                    : "Sube una foto"}
                 </p>
               </div>
               <p className="mt-2 text-xs text-slate-400">
-                {uploadedFile
+                {uploadedFile || avatarRecord?.imagenAvatar
                   ? "Cuando estés listo, genera tu fitting virtual."
                   : "Sube una foto frontal para obtener el mejor resultado."}
               </p>
               <button
                 type="button"
                 onClick={handleGenerate}
-                disabled={isGenerating}
+                disabled={isGenerating || (!uploadedFile && !avatarRecord?.imagenAvatar)}
                 className="mt-4 w-full rounded-full bg-sky-600 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isGenerating ? "Generando..." : "Generar look con IA"}
@@ -485,14 +695,14 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
         </aside>
       </div>
 
-      {uploadedPreview && (
+      {(uploadedPreview || avatarRecord?.imagenAvatar) && (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900">
             <ImageIcon className="h-4 w-4 text-sky-600" />
             Vista previa de tu foto
           </h3>
           <img
-            src={uploadedPreview}
+            src={uploadedPreview || avatarRecord?.imagenAvatar || FALLBACK_IMAGE}
             alt="Foto subida por el usuario"
             className="h-64 w-full rounded-2xl object-cover"
           />

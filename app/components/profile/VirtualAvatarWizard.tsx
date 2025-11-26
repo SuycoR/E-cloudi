@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import {
   ArrowLeft,
   Camera,
@@ -12,6 +12,14 @@ import {
   Upload,
   UserRound,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  DEFAULT_AVOID_COLORS,
+  DEFAULT_COLOR_PROFILE,
+  DEFAULT_PHOTO_SCORES,
+  DEFAULT_RECOMMENDED_COLORS,
+} from "@/app/constants/avatar";
+import type { UserAvatarRecord } from "@/types/avatar";
 
 const steps = [
   {
@@ -54,30 +62,17 @@ type AvatarMeasurements = {
   hombros: string;
 };
 
-const photoScores = [
-  { label: "Iluminación", value: 95 },
-  { label: "Nitidez", value: 88 },
-  { label: "Postura", value: 94 },
-  { label: "Encuadre", value: 90 },
-];
-
-const recommendedPalette = [
-  { name: "Terracota", hex: "#DB705C" },
-  { name: "Oliva", hex: "#7E8F41" },
-  { name: "Mostaza", hex: "#D9A441" },
-  { name: "Camel", hex: "#C8A274" },
-  { name: "Chocolate", hex: "#7A4A2C" },
-  { name: "Beige Cálido", hex: "#E3C9A8" },
-];
-
-const avoidPalette = [
-  { name: "Negro Puro", hex: "#1A1A1A" },
-  { name: "Gris Frío", hex: "#9AA5B1" },
-  { name: "Azul Hielo", hex: "#C8D9F1" },
-];
+type AvatarApiResponse = {
+  ok: boolean;
+  avatar: UserAvatarRecord | null;
+  error?: string;
+};
 
 const VirtualAvatarWizard = () => {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const modalTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [photoPreview, setPhotoPreview] = useState("/img/perfil.png");
   const [photoName, setPhotoName] = useState("avatar_demo.png");
@@ -94,15 +89,108 @@ const VirtualAvatarWizard = () => {
     hombros: "40",
   });
   const [avatarCreated, setAvatarCreated] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isSavingAvatar, setIsSavingAvatar] = useState(false);
+  const [savedAvatar, setSavedAvatar] = useState<UserAvatarRecord | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (modalTimeoutRef.current) {
+        clearTimeout(modalTimeoutRef.current);
+      }
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadStoredAvatar = async () => {
+      try {
+        const response = await fetch("/api/avatar");
+        if (cancelled) return;
+        if (!response.ok) {
+          if (response.status !== 401) {
+            console.warn("No se pudo cargar el avatar guardado");
+          }
+          return;
+        }
+        const data = (await response.json()) as AvatarApiResponse;
+        if (!data.avatar) return;
+        setSavedAvatar(data.avatar);
+        setAvatarCreated(true);
+        if (data.avatar.imagenAvatar) {
+          if (objectUrlRef.current) {
+            URL.revokeObjectURL(objectUrlRef.current);
+            objectUrlRef.current = null;
+          }
+          setPhotoPreview(data.avatar.imagenAvatar);
+          setPhotoName("avatar_guardado.png");
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.warn("Error al precargar avatar", error);
+        }
+      }
+    };
+
+    loadStoredAvatar();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const displayedScores =
+    savedAvatar?.calidadFoto && savedAvatar.calidadFoto.length > 0
+      ? savedAvatar.calidadFoto
+      : DEFAULT_PHOTO_SCORES;
+
+  const averageScore =
+    displayedScores.length > 0
+      ? Math.round(
+          displayedScores.reduce((acc, score) => acc + score.value, 0) /
+            displayedScores.length
+        )
+      : 95;
+
+  const displayedRecommended =
+    savedAvatar?.coloresRecomendados &&
+    savedAvatar.coloresRecomendados.length > 0
+      ? savedAvatar.coloresRecomendados
+      : DEFAULT_RECOMMENDED_COLORS;
+
+  const displayedAvoid =
+    savedAvatar?.coloresEvitar && savedAvatar.coloresEvitar.length > 0
+      ? savedAvatar.coloresEvitar
+      : DEFAULT_AVOID_COLORS;
+
+  const paletteMeta = {
+    temporada: savedAvatar?.temporadaPalette ?? DEFAULT_COLOR_PROFILE.temporada,
+    tono: savedAvatar?.tonoPiel ?? DEFAULT_COLOR_PROFILE.tono,
+    subtono: savedAvatar?.subtono ?? DEFAULT_COLOR_PROFILE.subtono,
+  };
 
   const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
     const url = URL.createObjectURL(file);
+    objectUrlRef.current = url;
     setPhotoPreview(url);
     setPhotoName(file.name);
     setAvatarCreated(false);
+    setUploadedFile(file);
+    setShowSuccessModal(false);
+    setStatusMessage(null);
   };
 
   const handleInfoChange = (
@@ -151,7 +239,66 @@ const VirtualAvatarWizard = () => {
   };
 
   const handleCreateAvatar = () => {
-    setAvatarCreated(true);
+    if (!uploadedFile) {
+      setStatusMessage("Sube una foto para generar tu avatar.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("avatarImage", uploadedFile);
+    formData.append("photoQuality", JSON.stringify(DEFAULT_PHOTO_SCORES));
+    formData.append(
+      "coloresRecomendados",
+      JSON.stringify(DEFAULT_RECOMMENDED_COLORS)
+    );
+    formData.append("coloresEvitar", JSON.stringify(DEFAULT_AVOID_COLORS));
+    formData.append("temporadaPalette", DEFAULT_COLOR_PROFILE.temporada);
+    formData.append("tonoPiel", DEFAULT_COLOR_PROFILE.tono);
+    formData.append("subtono", DEFAULT_COLOR_PROFILE.subtono);
+
+    setIsSavingAvatar(true);
+    setStatusMessage("Guardando avatar...");
+
+    fetch("/api/avatar", {
+      method: "POST",
+      body: formData,
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const body = await response.json().catch(() => null);
+          throw new Error(body?.error || "No pudimos guardar tu avatar");
+        }
+        return (await response.json()) as AvatarApiResponse;
+      })
+      .then((data) => {
+        setAvatarCreated(true);
+        setStatusMessage("Avatar generado correctamente");
+        if (data.avatar) {
+          setSavedAvatar(data.avatar);
+          if (data.avatar.imagenAvatar) {
+            if (objectUrlRef.current) {
+              URL.revokeObjectURL(objectUrlRef.current);
+              objectUrlRef.current = null;
+            }
+            setPhotoPreview(data.avatar.imagenAvatar);
+            setPhotoName("avatar_generado.png");
+          }
+        }
+        setShowSuccessModal(true);
+        if (modalTimeoutRef.current) {
+          clearTimeout(modalTimeoutRef.current);
+        }
+        modalTimeoutRef.current = setTimeout(() => {
+          router.push("/profile/mi-perfil");
+        }, 2200);
+      })
+      .catch((error: Error) => {
+        console.error("avatar creation error", error);
+        setStatusMessage(error.message);
+      })
+      .finally(() => {
+        setIsSavingAvatar(false);
+      });
   };
 
   const renderStepContent = () => {
@@ -553,13 +700,18 @@ const VirtualAvatarWizard = () => {
             <button
               type="button"
               onClick={handleCreateAvatar}
-              className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
+              disabled={isSavingAvatar}
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300"
             >
-              Crear mi avatar
+              {isSavingAvatar ? "Guardando..." : "Crear mi avatar"}
             </button>
           )}
         </div>
       </div>
+
+      {statusMessage && (
+        <p className="text-sm text-ebony-600">{statusMessage}</p>
+      )}
 
       {avatarCreated && (
         <div className="rounded-2xl border border-ebony-100 bg-white p-6 shadow-sm">
@@ -583,7 +735,9 @@ const VirtualAvatarWizard = () => {
                   <p className="text-sm font-semibold text-ebony-700">
                     Calidad de foto
                   </p>
-                  <p className="text-3xl font-bold text-ebony-900">95</p>
+                  <p className="text-3xl font-bold text-ebony-900">
+                    {Number.isFinite(averageScore) ? averageScore : 95}
+                  </p>
                   <p className="text-xs text-gray-500">Precisión Excelente</p>
                 </div>
                 <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-ebony-700">
@@ -591,7 +745,7 @@ const VirtualAvatarWizard = () => {
                 </span>
               </div>
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                {photoScores.map((score) => (
+                {displayedScores.map((score) => (
                   <div
                     key={score.label}
                     className="rounded-xl bg-white p-4 shadow-sm"
@@ -640,15 +794,15 @@ const VirtualAvatarWizard = () => {
               <div className="mt-6 grid gap-3 text-sm text-ebony-800 md:grid-cols-3">
                 <div className="rounded-xl bg-ebony-50 p-3 text-center">
                   <p className="font-semibold">Temporada</p>
-                  <p className="text-ebony-600">Otoño</p>
+                  <p className="text-ebony-600">{paletteMeta.temporada}</p>
                 </div>
                 <div className="rounded-xl bg-ebony-50 p-3 text-center">
                   <p className="font-semibold">Tono de piel</p>
-                  <p className="text-ebony-600">Cálido medio</p>
+                  <p className="text-ebony-600">{paletteMeta.tono}</p>
                 </div>
                 <div className="rounded-xl bg-ebony-50 p-3 text-center">
                   <p className="font-semibold">Subtono</p>
-                  <p className="text-ebony-600">Dorado</p>
+                  <p className="text-ebony-600">{paletteMeta.subtono}</p>
                 </div>
               </div>
 
@@ -657,7 +811,7 @@ const VirtualAvatarWizard = () => {
                   Colores recomendados
                 </p>
                 <div className="mt-3 grid grid-cols-3 gap-3 md:grid-cols-6">
-                  {recommendedPalette.map((color) => (
+                  {displayedRecommended.map((color) => (
                     <div
                       key={color.name}
                       className="text-center text-xs font-medium"
@@ -677,7 +831,7 @@ const VirtualAvatarWizard = () => {
                   Colores a evitar
                 </p>
                 <div className="mt-3 grid grid-cols-3 gap-3">
-                  {avoidPalette.map((color) => (
+                  {displayedAvoid.map((color) => (
                     <div
                       key={color.name}
                       className="text-center text-xs font-medium"
@@ -691,6 +845,51 @@ const VirtualAvatarWizard = () => {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-xl">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <CheckCircle2 className="h-6 w-6" />
+            </div>
+            <h4 className="mt-4 text-xl font-semibold text-ebony-900">
+              ¡Avatar generado!
+            </h4>
+            <p className="mt-2 text-sm text-gray-600">
+              Guardamos tu avatar en la nube. Te redireccionaremos a "Mi perfil"
+              para que puedas administrarlo.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  if (modalTimeoutRef.current) {
+                    clearTimeout(modalTimeoutRef.current);
+                    modalTimeoutRef.current = null;
+                  }
+                  router.push("/profile/mi-perfil");
+                }}
+                className="rounded-full bg-ebony-900 px-5 py-2 text-sm font-semibold text-white"
+              >
+                Ir a Mi perfil
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (modalTimeoutRef.current) {
+                    clearTimeout(modalTimeoutRef.current);
+                    modalTimeoutRef.current = null;
+                  }
+                  setShowSuccessModal(false);
+                }}
+                className="rounded-full border border-ebony-200 px-5 py-2 text-sm font-semibold text-ebony-800"
+              >
+                Seguir aquí
+              </button>
             </div>
           </div>
         </div>

@@ -117,8 +117,9 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
   const [modalInsertedIds, setModalInsertedIds] = useState<number[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
-  const [avatarRecord, setAvatarRecord] =
-    useState<UserAvatarRecord | null>(null);
+  const [avatarRecord, setAvatarRecord] = useState<UserAvatarRecord | null>(
+    null
+  );
   const [fusionPreview, setFusionPreview] = useState<string | null>(null);
   const [personalizedAutoSelected, setPersonalizedAutoSelected] =
     useState(false);
@@ -332,7 +333,9 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
         fileToUse = await fetchRemoteImageAsFile(avatarRecord.imagenAvatar);
       } catch (error) {
         console.error("No fue posible leer el avatar guardado", error);
-        setStatusMessage("No pudimos usar tu avatar guardado. Sube una foto nueva.");
+        setStatusMessage(
+          "No pudimos usar tu avatar guardado. Sube una foto nueva."
+        );
         return;
       }
     }
@@ -656,7 +659,9 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
               <button
                 type="button"
                 onClick={handleGenerate}
-                disabled={isGenerating || (!uploadedFile && !avatarRecord?.imagenAvatar)}
+                disabled={
+                  isGenerating || (!uploadedFile && !avatarRecord?.imagenAvatar)
+                }
                 className="mt-4 w-full rounded-full bg-sky-600 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isGenerating ? "Generando..." : "Generar look con IA"}
@@ -702,7 +707,9 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
             Vista previa de tu foto
           </h3>
           <img
-            src={uploadedPreview || avatarRecord?.imagenAvatar || FALLBACK_IMAGE}
+            src={
+              uploadedPreview || avatarRecord?.imagenAvatar || FALLBACK_IMAGE
+            }
             alt="Foto subida por el usuario"
             className="h-64 w-full rounded-2xl object-cover"
           />

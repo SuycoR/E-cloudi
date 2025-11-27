@@ -6,22 +6,19 @@ const metaCards = [
     key: "temporada",
     label: "Temporada",
     icon: SunMedium,
-    bg: "bg-orange-50",
-    text: "text-orange-700",
+    badgeColors: "bg-[#cdffff] text-[#006691]",
   },
   {
     key: "tono",
     label: "Tono de piel",
     icon: Palette,
-    bg: "bg-rose-50",
-    text: "text-rose-700",
+    badgeColors: "bg-[#94e7ff] text-[#0b2c3f]",
   },
   {
     key: "subtono",
     label: "Subtón",
     icon: Sparkles,
-    bg: "bg-amber-50",
-    text: "text-amber-700",
+    badgeColors: "bg-[#40cfff]/20 text-[#006691]",
   },
 ] as const;
 
@@ -47,11 +44,13 @@ function normalizeSwatches(value?: AvatarColorSwatch[] | null): AvatarColorSwatc
     }));
 }
 
-const SWATCH_CARD_BASE = "rounded-2xl border border-white/40 bg-white/10 p-4 shadow-inner backdrop-blur";
+const SWATCH_CARD_BASE =
+  "rounded-2xl border border-[#94e7ff]/60 bg-white p-4 shadow-lg shadow-[#006691]/10";
 
 const GRID_CLASS = "grid gap-4 sm:grid-cols-2 lg:grid-cols-4";
 
-const EMPTY_STATE_CLASS = "flex items-center gap-3 rounded-2xl border border-dashed border-ebony-100 bg-white p-4 text-sm text-ebony-500";
+const EMPTY_STATE_CLASS =
+  "flex items-center gap-3 rounded-2xl border border-dashed border-[#94e7ff]/70 bg-[#f3fbff] p-4 text-sm text-[#0b2c3f]/70";
 
 const badgeClass = "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold";
 
@@ -71,51 +70,51 @@ const ColorimetriaPanel = (props: ColorimetriaPanelProps) => {
   const renderSwatch = (swatch: AvatarColorSwatch, index: number) => (
     <div
       key={`${swatch.name}-${index}`}
-      className={`${SWATCH_CARD_BASE} border-ebony-100 bg-white/70`}
+      className={`${SWATCH_CARD_BASE} border-transparent`}
     >
       <div
-        className="h-20 w-full rounded-xl border border-white/50"
+        className="h-20 w-full rounded-xl border border-[#cdffff] shadow-inner"
         style={{ backgroundColor: swatch.hex || "#f5f5f4" }}
       />
-      <div className="mt-3 flex items-center justify-between text-sm font-semibold text-ebony-900">
+      <div className="mt-3 flex items-center justify-between text-sm font-semibold text-[#0b2c3f]">
         <span>{swatch.name}</span>
-        <span className="text-xs text-ebony-500">{swatch.hex}</span>
+        <span className="text-xs text-[#0b2c3f]/70">{swatch.hex}</span>
       </div>
     </div>
   );
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-ebony-100 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 text-white shadow-2xl">
-      <div className="absolute inset-0 opacity-30" aria-hidden>
-        <div className="absolute -right-12 top-10 h-44 w-44 rounded-full bg-purple-500 blur-3xl" />
-        <div className="absolute -left-16 bottom-10 h-48 w-48 rounded-full bg-amber-400 blur-3xl" />
+    <div className="relative overflow-hidden rounded-3xl border border-[#cdffff] bg-white p-6 text-[#0b2c3f] shadow-2xl">
+      <div className="pointer-events-none absolute inset-0 opacity-70" aria-hidden>
+        <div className="absolute -right-16 top-0 h-56 w-56 rounded-full bg-gradient-to-br from-[#94e7ff] to-[#cdffff] blur-3xl" />
+        <div className="absolute -left-12 bottom-0 h-40 w-40 rounded-full bg-gradient-to-br from-[#40cfff]/60 to-transparent blur-3xl" />
       </div>
 
       <div className="relative flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-white/60">
+          <p className="text-sm uppercase tracking-[0.3em] text-[#2499c7]">
             Análisis de colorimetría
           </p>
-          <h2 className="mt-2 text-3xl font-bold text-white">
+          <h2 className="mt-2 text-3xl font-bold text-[#0b2c3f]">
             Tu paleta personalizada
           </h2>
-          <p className="mt-1 max-w-xl text-sm text-white/70">
+          <p className="mt-1 max-w-xl text-sm text-[#0b2c3f]/70">
             Revisa los tonos sugeridos por nuestro motor virtual para potenciar
             tu avatar en tiempo real.
           </p>
         </div>
-        <div className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 backdrop-blur">
+        <div className="rounded-full border border-[#94e7ff] bg-[#cdffff]/60 px-4 py-2 text-sm font-semibold text-[#0b2c3f] backdrop-blur">
           Actualizado automáticamente
         </div>
       </div>
 
       <div className="relative mt-8 grid gap-4 md:grid-cols-3">
-        {metaCards.map(({ key, label, icon: Icon, bg, text }) => (
-          <div key={key} className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-            <span className={`${badgeClass} ${bg} ${text} bg-opacity-90`}>
+        {metaCards.map(({ key, label, icon: Icon, badgeColors }) => (
+          <div key={key} className="rounded-2xl border border-[#cdffff] bg-gradient-to-br from-[#f6fdff] to-white p-4 shadow-sm">
+            <span className={`${badgeClass} ${badgeColors}`}>
               <Icon className="h-4 w-4" /> {label}
             </span>
-            <p className="mt-3 text-xl font-semibold text-white">
+            <p className="mt-3 text-xl font-semibold text-[#0b2c3f]">
               {key === "temporada" && formatMeta(temporada)}
               {key === "tono" && formatMeta(tono)}
               {key === "subtono" && formatMeta(subtono)}
@@ -128,18 +127,18 @@ const ColorimetriaPanel = (props: ColorimetriaPanelProps) => {
         <section>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-green-300">
+              <p className="text-sm uppercase tracking-[0.3em] text-[#2499c7]">
                 Colores recomendados
               </p>
-              <h3 className="text-2xl font-semibold">Paleta ideal</h3>
+              <h3 className="text-2xl font-semibold text-[#0b2c3f]">Paleta ideal</h3>
             </div>
-            <Palette className="h-5 w-5 text-green-200" />
+            <Palette className="h-5 w-5 text-[#006691]" />
           </div>
           <div className={`mt-4 ${GRID_CLASS}`}>
             {recommended.length > 0 ? (
               recommended.map((swatch, index) => renderSwatch(swatch, index))
             ) : (
-              <div className={`${EMPTY_STATE_CLASS} col-span-full bg-white/5 text-white/60`}>
+              <div className={`${EMPTY_STATE_CLASS} col-span-full`}>
                 <AlertTriangle className="h-5 w-5" />
                 No hay colores sugeridos registrados para tu avatar todavía.
               </div>
@@ -150,18 +149,18 @@ const ColorimetriaPanel = (props: ColorimetriaPanelProps) => {
         <section>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-red-300">
+              <p className="text-sm uppercase tracking-[0.3em] text-[#2499c7]">
                 Colores a evitar
               </p>
-              <h3 className="text-2xl font-semibold">Mantente alejada</h3>
+              <h3 className="text-2xl font-semibold text-[#0b2c3f]">Mantente alejada</h3>
             </div>
-            <AlertTriangle className="h-5 w-5 text-red-200" />
+            <AlertTriangle className="h-5 w-5 text-[#006691]" />
           </div>
           <div className={`mt-4 ${GRID_CLASS}`}>
             {avoid.length > 0 ? (
               avoid.map((swatch, index) => renderSwatch(swatch, index))
             ) : (
-              <div className={`${EMPTY_STATE_CLASS} col-span-full bg-white/5 text-white/60`}>
+              <div className={`${EMPTY_STATE_CLASS} col-span-full`}>
                 <AlertTriangle className="h-5 w-5" />
                 Aún no calculamos colores conflictivos para tu perfil.
               </div>

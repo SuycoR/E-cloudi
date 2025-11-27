@@ -121,7 +121,8 @@ export default function MiPerfilPage() {
       alert("Hubo un error al guardar los cambios");
     }
   };
-
+  
+// Para setear la imagen del avatar en caso tengas
   useEffect(() => {
     const fetchAvatar = async () => {
       try {

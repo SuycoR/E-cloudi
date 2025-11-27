@@ -106,6 +106,7 @@ const VirtualAvatarWizard = () => {
     };
   }, []);
 
+  // Llamando a la api, para guardar el avatar si es que existe
   useEffect(() => {
     let cancelled = false;
 

@@ -19,7 +19,7 @@ import {
   DEFAULT_PHOTO_SCORES,
   DEFAULT_RECOMMENDED_COLORS,
 } from "@/app/constants/avatar";
-import type { UserAvatarRecord } from "@/types/avatar";
+import type { PhotoScore, UserAvatarRecord } from "@/types/avatar";
 
 const steps = [
   {
@@ -68,11 +68,47 @@ type AvatarApiResponse = {
   error?: string;
 };
 
+type PhotoValidationState = {
+  status: "idle" | "loading" | "approved" | "rejected" | "error";
+  reasons: string[];
+  tips: string[];
+  scores: PhotoScore[];
+};
+
+const DEFAULT_VALIDATION_STATE: PhotoValidationState = {
+  status: "idle",
+  reasons: [],
+  tips: [],
+  scores: DEFAULT_PHOTO_SCORES,
+};
+
+const clampScore = (value: number) =>
+  Math.min(100, Math.max(0, Math.round(value)));
+
+const normalizeClientPhotoScores = (scores?: PhotoScore[] | null) => {
+  if (!scores || !Array.isArray(scores) || !scores.length) {
+    return DEFAULT_PHOTO_SCORES;
+  }
+
+  return scores.map((score) => ({
+    label: score?.label?.trim() || "Indicador",
+    value: clampScore(Number(score?.value ?? 0)),
+  }));
+};
+
+const sanitizeClientList = (values?: unknown) => {
+  if (!Array.isArray(values)) return [];
+  return values
+    .map((value) => (typeof value === "string" ? value.trim() : ""))
+    .filter((value): value is string => Boolean(value));
+};
+
 const VirtualAvatarWizard = () => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const modalTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const objectUrlRef = useRef<string | null>(null);
+  const validationControllerRef = useRef<AbortController | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [photoPreview, setPhotoPreview] = useState("/img/perfil.png");
   const [photoName, setPhotoName] = useState("avatar_demo.png");
@@ -94,6 +130,8 @@ const VirtualAvatarWizard = () => {
   const [savedAvatar, setSavedAvatar] = useState<UserAvatarRecord | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [photoValidation, setPhotoValidation] =
+    useState<PhotoValidationState>(DEFAULT_VALIDATION_STATE);
 
   useEffect(() => {
     return () => {
@@ -102,6 +140,10 @@ const VirtualAvatarWizard = () => {
       }
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current);
+      }
+      if (validationControllerRef.current) {
+        validationControllerRef.current.abort();
+        validationControllerRef.current = null;
       }
     };
   }, []);
@@ -176,6 +218,117 @@ const VirtualAvatarWizard = () => {
     subtono: savedAvatar?.subtono ?? DEFAULT_COLOR_PROFILE.subtono,
   };
 
+  const validationStatusCopy = useMemo(() => {
+    switch (photoValidation.status) {
+      case "approved":
+        return {
+          badge: "Foto validada",
+          badgeClass: "bg-emerald-100 text-emerald-700",
+          message: "Imagen aprobada",
+          description:
+            "Listo, tu foto cumple los requisitos para generar el avatar.",
+        };
+      case "loading":
+        return {
+          badge: "Analizando...",
+          badgeClass: "bg-amber-100 text-amber-700",
+          message: "Validando tu foto",
+          description: "Nuestro modelo está revisando iluminación y postura.",
+        };
+      case "rejected":
+        return {
+          badge: "Requiere cambios",
+          badgeClass: "bg-red-100 text-red-600",
+          message: "La foto necesita ajustes",
+          description:
+            "Corrige los puntos indicados y vuelve a intentar la validación.",
+        };
+      case "error":
+        return {
+          badge: "Error",
+          badgeClass: "bg-red-100 text-red-600",
+          message: "No pudimos validar la foto",
+          description:
+            "Reintenta en unos segundos o verifica tu conexión a internet.",
+        };
+      default:
+        return {
+          badge: "Pendiente",
+          badgeClass: "bg-gray-100 text-gray-600",
+          message: "Foto pendiente de validación",
+          description:
+            "Sube una imagen frontal para que nuestro modelo la apruebe.",
+        };
+    }
+  }, [photoValidation.status]);
+
+  const shouldShowReasons =
+    photoValidation.status !== "approved" &&
+    photoValidation.reasons.length > 0;
+  const shouldShowTips =
+    photoValidation.status !== "approved" &&
+    photoValidation.tips.length > 0;
+
+  const runPhotoValidation = async (file: File) => {
+    if (validationControllerRef.current) {
+      validationControllerRef.current.abort();
+      validationControllerRef.current = null;
+    }
+
+    const controller = new AbortController();
+    validationControllerRef.current = controller;
+    setPhotoValidation({
+      status: "loading",
+      reasons: [],
+      tips: [],
+      scores: [],
+    });
+    setStatusMessage("Validando tu foto con IA...");
+
+    try {
+      const formData = new FormData();
+      formData.append("avatarImage", file);
+      const response = await fetch("/api/avatar/validate", {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || "No pudimos validar tu foto.");
+      }
+
+      const validation = payload?.result;
+      const verdict = validation?.verdict === "approved" ? "approved" : "rejected";
+      setPhotoValidation({
+        status: verdict,
+        reasons: sanitizeClientList(validation?.reasons),
+        tips: sanitizeClientList(validation?.tips),
+        scores: normalizeClientPhotoScores(validation?.photoScores),
+      });
+      setStatusMessage(
+        verdict === "approved"
+          ? "Foto validada. Continúa con el siguiente paso."
+          : "Tu foto necesita ajustes antes de continuar."
+      );
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      const message =
+        error instanceof Error ? error.message : "No pudimos validar tu foto.";
+      setPhotoValidation({
+        status: "error",
+        reasons: [message],
+        tips: [],
+        scores: DEFAULT_PHOTO_SCORES,
+      });
+      setStatusMessage(message);
+    } finally {
+      if (validationControllerRef.current === controller) {
+        validationControllerRef.current = null;
+      }
+    }
+  };
+
   const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -192,6 +345,7 @@ const VirtualAvatarWizard = () => {
     setUploadedFile(file);
     setShowSuccessModal(false);
     setStatusMessage(null);
+    void runPhotoValidation(file);
   };
 
   const handleInfoChange = (
@@ -211,7 +365,8 @@ const VirtualAvatarWizard = () => {
   };
 
   const canContinue = useMemo(() => {
-    if (currentStep === 0) return Boolean(photoPreview);
+    if (currentStep === 0)
+      return Boolean(uploadedFile) && photoValidation.status === "approved";
     if (currentStep === 1)
       return info.genero && info.tipoCuerpo && info.altura && info.peso;
     if (currentStep === 2)
@@ -222,7 +377,7 @@ const VirtualAvatarWizard = () => {
         measurements.hombros
       );
     return true;
-  }, [currentStep, info, measurements, photoPreview]);
+  }, [currentStep, info, measurements, photoValidation.status, uploadedFile]);
 
   const goNext = () => {
     if (currentStep === steps.length - 1) return;
@@ -245,20 +400,22 @@ const VirtualAvatarWizard = () => {
       return;
     }
 
+    if (photoValidation.status !== "approved") {
+      setStatusMessage("Valida tu foto antes de continuar con el avatar.");
+      setCurrentStep(0);
+      return;
+    }
+
+    const validatedScores = photoValidation.scores?.length
+      ? photoValidation.scores
+      : DEFAULT_PHOTO_SCORES;
+
     const formData = new FormData();
     formData.append("avatarImage", uploadedFile);
-    formData.append("photoQuality", JSON.stringify(DEFAULT_PHOTO_SCORES));
-    formData.append(
-      "coloresRecomendados",
-      JSON.stringify(DEFAULT_RECOMMENDED_COLORS)
-    );
-    formData.append("coloresEvitar", JSON.stringify(DEFAULT_AVOID_COLORS));
-    formData.append("temporadaPalette", DEFAULT_COLOR_PROFILE.temporada);
-    formData.append("tonoPiel", DEFAULT_COLOR_PROFILE.tono);
-    formData.append("subtono", DEFAULT_COLOR_PROFILE.subtono);
+    formData.append("photoQuality", JSON.stringify(validatedScores));
 
     setIsSavingAvatar(true);
-    setStatusMessage("Guardando avatar...");
+    setStatusMessage("Analizando tu colorimetría y guardando avatar...");
 
     fetch("/api/avatar", {
       method: "POST",
@@ -373,12 +530,47 @@ const VirtualAvatarWizard = () => {
               </div>
 
               <div className="mt-6 rounded-xl bg-ebony-50 p-4 text-left">
-                <p className="text-sm font-semibold text-ebony-800">
-                  Imagen cargada exitosamente
-                </p>
-                <p className="text-sm text-gray-500">
-                  Tu foto fue procesada y está lista para generar tu avatar.
-                </p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-ebony-800">
+                      {validationStatusCopy.message}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {validationStatusCopy.description}
+                    </p>
+                  </div>
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${validationStatusCopy.badgeClass}`}
+                  >
+                    {validationStatusCopy.badge}
+                  </span>
+                </div>
+
+                {shouldShowReasons && (
+                  <div className="mt-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-red-600">
+                      Ajustes necesarios
+                    </p>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-600">
+                      {photoValidation.reasons.map((reason) => (
+                        <li key={reason}>{reason}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {shouldShowTips && (
+                  <div className="mt-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
+                      Consejos rápidos
+                    </p>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-600">
+                      {photoValidation.tips.map((tip) => (
+                        <li key={tip}>{tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
 

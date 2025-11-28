@@ -8,15 +8,32 @@ import type { UserAvatarRecord } from "@/types/avatar";
 
 export const dynamic = "force-dynamic";
 
+const REQUIRED_AZURE_VARS = [
+  "CONF_AZURE_ENDPOINT",
+  "CONF_AZURE_API_KEY",
+  "CONF_AZURE_DEPLOYMENT",
+  "CONF_API_VERSION",
+];
+
+type SearchParamsInput =
+  | Record<string, string | string[] | undefined>
+  | Promise<Record<string, string | string[] | undefined>>;
+
 type PageProps = {
-  searchParams?: {
-    regenerar?: string;
-  };
+  searchParams?: SearchParamsInput;
 };
 
 const AvatarVirtualPage = async ({ searchParams }: PageProps) => {
+  const resolvedSearchParams = searchParams
+    ? await Promise.resolve(searchParams)
+    : {};
+
   const avatar = await getStoredAvatar();
-  const forceWizard = searchParams?.regenerar === "1";
+  const forceWizard =
+    resolvedSearchParams?.regenerar === "1" ||
+    (Array.isArray(resolvedSearchParams?.regenerar)
+      ? resolvedSearchParams.regenerar.includes("1")
+      : false);
   const hasStoredAvatar = Boolean(avatar);
 
   return (
@@ -33,6 +50,13 @@ const AvatarVirtualPage = async ({ searchParams }: PageProps) => {
             ? "Consulta tu panel de colorimetría personalizado y gestiona tu experiencia de try-on."
             : "Sigue la guía paso a paso para subir tu foto, completar tu información y recibir recomendaciones de colorimetría."}
         </p>
+        {process.env.NODE_ENV !== "production" && (
+          <p className="text-xs text-gray-400">
+            La colorimetría IA usa las variables {REQUIRED_AZURE_VARS.join(
+              ", "
+            )} definidas en tu archivo .env.
+          </p>
+        )}
       </header>
 
       {avatar && !forceWizard ? (
@@ -93,8 +117,8 @@ const ExistingAvatarView = ({
                 src={photoSrc}
                 alt="Avatar guardado"
                 fill
+                className="object-contain"
                 sizes="400px"
-                className="object-cover"
                 priority
                 unoptimized
               />

@@ -14,10 +14,16 @@ import {
   readText,
   upsertAvatar,
 } from "@/lib/avatarStorage";
+import { fetchColorimetriaForAvatar } from "@/lib/colorimetriaModel";
 import type { AvatarColorSwatch, PhotoScore } from "@/types/avatar";
 
 const AWS_BUCKET = process.env.AWS_S3_BUCKET;
 const AWS_REGION = process.env.AWS_REGION;
+const FALLBACK_COLOR_PROFILE = {
+  temporada: "Otoño",
+  tono: "Cálido",
+  subtono: "Dorado",
+};
 
 async function requireUserId() {
   const session = await auth();
@@ -90,6 +96,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const aiColorimetria = await fetchColorimetriaForAvatar({
+      imageFile: file,
+      metadata: {
+        userId,
+      },
+    }).catch((error) => {
+      console.warn("Fallo colorimetría IA", error);
+      return null;
+    });
     const uploaded = await uploadAvatarImage(file, userId);
 
     const photoScoresRaw = parseJson<PhotoScore[]>(
@@ -101,15 +116,32 @@ export async function POST(req: NextRequest) {
     const avoidRaw = parseJson<AvatarColorSwatch[]>(
       formData.get("coloresEvitar")
     );
+    const fallbackRecommended = normalizeColors(recommendedRaw);
+    const fallbackAvoid = normalizeColors(avoidRaw);
 
     await upsertAvatar(userId, {
       imageUrl: uploaded.url,
       photoScores: normalizePhotoScores(photoScoresRaw),
-      temporada: readText(formData.get("temporadaPalette")),
-      tono: readText(formData.get("tonoPiel")),
-      subtono: readText(formData.get("subtono")),
-      recommended: normalizeColors(recommendedRaw),
-      avoid: normalizeColors(avoidRaw),
+      temporada:
+        aiColorimetria?.temporadaPalette ??
+        readText(formData.get("temporadaPalette")) ??
+        FALLBACK_COLOR_PROFILE.temporada,
+      tono:
+        aiColorimetria?.tonoPiel ??
+        readText(formData.get("tonoPiel")) ??
+        FALLBACK_COLOR_PROFILE.tono,
+      subtono:
+        aiColorimetria?.subtono ??
+        readText(formData.get("subtono")) ??
+        FALLBACK_COLOR_PROFILE.subtono,
+      recommended:
+        aiColorimetria?.coloresRecomendados?.length
+          ? aiColorimetria.coloresRecomendados
+          : fallbackRecommended,
+      avoid:
+        aiColorimetria?.coloresEvitar?.length
+          ? aiColorimetria.coloresEvitar
+          : fallbackAvoid,
     });
 
     const row = await fetchAvatarRow(userId);
@@ -146,8 +178,7 @@ export async function PUT(req: NextRequest) {
 
     let imageUrl = existingImage;
     if (file instanceof File) {
-      const uploaded = await uploadAvatarImage(file, userId);
-      imageUrl = uploaded.url;
+      imageUrl = (await uploadAvatarImage(file, userId)).url;
     }
 
     if (!imageUrl) {
@@ -156,6 +187,20 @@ export async function PUT(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    const shouldRefreshPalette =
+      file instanceof File || readText(formData.get("actualizarColorimetria")) === "1";
+    const aiColorimetria =
+      shouldRefreshPalette && imageUrl
+        ? await fetchColorimetriaForAvatar(
+            file instanceof File
+              ? { imageFile: file, metadata: { userId } }
+              : { imageUrl, metadata: { userId } }
+          ).catch((error) => {
+            console.warn("Fallo colorimetría IA", error);
+            return null;
+          })
+        : null;
 
     const photoScoresRaw = parseJson<PhotoScore[]>(
       formData.get("photoQuality")
@@ -187,15 +232,30 @@ export async function PUT(req: NextRequest) {
         ? normalizedPhotoScores
         : fallbackPhotoScores,
       temporada:
+        aiColorimetria?.temporadaPalette ??
         readText(formData.get("temporadaPalette")) ??
         current?.temporada_palette ??
-        null,
-      tono: readText(formData.get("tonoPiel")) ?? current?.tono_piel ?? null,
-      subtono: readText(formData.get("subtono")) ?? current?.subtono ?? null,
-      recommended: normalizedRecommended.length
+        FALLBACK_COLOR_PROFILE.temporada,
+      tono:
+        aiColorimetria?.tonoPiel ??
+        readText(formData.get("tonoPiel")) ??
+        current?.tono_piel ??
+        FALLBACK_COLOR_PROFILE.tono,
+      subtono:
+        aiColorimetria?.subtono ??
+        readText(formData.get("subtono")) ??
+        current?.subtono ??
+        FALLBACK_COLOR_PROFILE.subtono,
+      recommended: aiColorimetria?.coloresRecomendados?.length
+        ? aiColorimetria.coloresRecomendados
+        : normalizedRecommended.length
         ? normalizedRecommended
         : fallbackRecommended,
-      avoid: normalizedAvoid.length ? normalizedAvoid : fallbackAvoid,
+      avoid: aiColorimetria?.coloresEvitar?.length
+        ? aiColorimetria.coloresEvitar
+        : normalizedAvoid.length
+        ? normalizedAvoid
+        : fallbackAvoid,
     });
 
     const row = await fetchAvatarRow(userId);

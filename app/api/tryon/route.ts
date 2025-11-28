@@ -233,7 +233,6 @@ The background should be clean, neutral, and professional.`,
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
     const session = await auth();
     const rawId = session?.user?.id;
     const userId = rawId ? Number(rawId) : NaN;
@@ -267,7 +266,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch user's avatar image from database
     const [avatarRows] = await db.query<AvatarRow[]>(
       "SELECT imagen_avatar FROM usuario_avatar WHERE usuario_id = ? LIMIT 1",
       [userId]

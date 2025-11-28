@@ -160,7 +160,7 @@ export async function upsertAvatar(
       payload.subtono,
       recommendedJson,
       avoidJson,
-      createdAt,
+      createdAt
     ]
   );
 }

@@ -129,8 +129,10 @@ export async function upsertAvatar(
     subtono: string | null;
     recommended: AvatarColorSwatch[];
     avoid: AvatarColorSwatch[];
+    createdAt?: Date;
   }
 ) {
+  const createdAt = payload.createdAt ?? new Date();
   const photoJson = payload.photoScores.length
     ? JSON.stringify(payload.photoScores)
     : null;
@@ -140,7 +142,7 @@ export async function upsertAvatar(
   await db.query(
     `INSERT INTO usuario_avatar
       (usuario_id, imagen_avatar, calidad_foto_json, temporada_palette, tono_piel, subtono, colores_recomendados_json, colores_evitar_json, create_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
       imagen_avatar = VALUES(imagen_avatar),
       calidad_foto_json = VALUES(calidad_foto_json),
@@ -148,8 +150,7 @@ export async function upsertAvatar(
       tono_piel = VALUES(tono_piel),
       subtono = VALUES(subtono),
       colores_recomendados_json = VALUES(colores_recomendados_json),
-      colores_evitar_json = VALUES(colores_evitar_json),
-      create_date = VALUES(create_date)`,
+      colores_evitar_json = VALUES(colores_evitar_json)`,
     [
       userId,
       payload.imageUrl,
@@ -159,6 +160,7 @@ export async function upsertAvatar(
       payload.subtono,
       recommendedJson,
       avoidJson,
+      createdAt,
     ]
   );
 }

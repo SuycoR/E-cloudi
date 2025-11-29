@@ -7,7 +7,6 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  
   const { id: idStr } = await params;
   const id = Number(idStr);
 
@@ -76,10 +75,9 @@ export async function PUT(
   }
 }
 
-
 export async function DELETE(
   req: Request,
-  context: { params: Promise<{ id: string }> }  
+  context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
   const idNum = Number(id);

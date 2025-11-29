@@ -1,6 +1,6 @@
 // app/api/admin/productos/[id]/update/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
 
 export async function PUT(
   request: NextRequest,
@@ -9,7 +9,7 @@ export async function PUT(
   const { id } = await params;
   const idProducto = parseInt(id, 10);
   if (isNaN(idProducto)) {
-    return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+    return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
   try {
@@ -24,7 +24,12 @@ export async function PUT(
       `UPDATE producto
        SET nombre = ?, descripcion = ?, imagen_producto = ?
        WHERE id = ?`,
-      [productoGeneral.nombre, productoGeneral.descripcion, productoGeneral.imagen_producto, idProducto]
+      [
+        productoGeneral.nombre,
+        productoGeneral.descripcion,
+        productoGeneral.imagen_producto,
+        idProducto,
+      ]
     );
 
     // Actualizar categorías si es necesario
@@ -46,7 +51,14 @@ export async function PUT(
         `UPDATE producto_especifico
          SET SKU = ?, cantidad_stock = ?, imagen_producto = ?, precio = ?
          WHERE id = ? AND id_producto = ?`,
-        [esp.SKU, esp.cantidad_stock, esp.imagen_producto, esp.precio, esp.id_especifico, idProducto]
+        [
+          esp.SKU,
+          esp.cantidad_stock,
+          esp.imagen_producto,
+          esp.precio,
+          esp.id_especifico,
+          idProducto,
+        ]
       );
     }
 
@@ -54,7 +66,10 @@ export async function PUT(
     connection.release();
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error actualizando producto:', error);
-    return NextResponse.json({ error: 'Error en el servidor' }, { status: 500 });
+    console.error("Error actualizando producto:", error);
+    return NextResponse.json(
+      { error: "Error en el servidor" },
+      { status: 500 }
+    );
   }
 }

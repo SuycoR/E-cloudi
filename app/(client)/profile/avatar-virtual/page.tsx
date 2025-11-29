@@ -20,9 +20,7 @@ type PageProps = {
 };
 
 const AvatarVirtualPage = async ({ searchParams }: PageProps) => {
-  const resolvedSearchParams = searchParams
-    ? await searchParams
-    : {};
+  const resolvedSearchParams = searchParams ? await searchParams : {};
 
   const avatar = await getStoredAvatar();
   const forceWizard =
@@ -48,9 +46,8 @@ const AvatarVirtualPage = async ({ searchParams }: PageProps) => {
         </p>
         {process.env.NODE_ENV !== "production" && (
           <p className="text-xs text-gray-400">
-            La colorimetría IA usa las variables {REQUIRED_AZURE_VARS.join(
-              ", "
-            )} definidas en tu archivo .env.
+            La colorimetría IA usa las variables{" "}
+            {REQUIRED_AZURE_VARS.join(", ")} definidas en tu archivo .env.
           </p>
         )}
       </header>
@@ -64,11 +61,7 @@ const AvatarVirtualPage = async ({ searchParams }: PageProps) => {
   );
 };
 
-const ExistingAvatarView = ({
-  avatar,
-}: {
-  avatar: UserAvatarRecord;
-}) => {
+const ExistingAvatarView = ({ avatar }: { avatar: UserAvatarRecord }) => {
   const averageScore = avatar.calidadFoto?.length
     ? Math.round(
         avatar.calidadFoto.reduce((acc, score) => acc + score.value, 0) /

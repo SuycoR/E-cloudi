@@ -37,7 +37,13 @@ interface CheckoutMetadata {
 }
 
 // Esta función debe recibir los datos del carrito y del checkout
-export async function crearPreferenciaMP({ cart, metadata }: { cart: CartItem[]; metadata: CheckoutMetadata }) {
+export async function crearPreferenciaMP({
+  cart,
+  metadata,
+}: {
+  cart: CartItem[];
+  metadata: CheckoutMetadata;
+}) {
   const url = await api.message.submit({ cart, metadata });
   redirect(url);
 }

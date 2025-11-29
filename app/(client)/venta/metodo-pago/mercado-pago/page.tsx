@@ -22,7 +22,7 @@ export default function HomePage() {
       alert("Debes seleccionar una dirección de envío antes de continuar.");
       return;
     }
-    
+
     // Llama a la server action pasando los datos necesarios
     await crearPreferenciaMP({
       cart: cart.map(

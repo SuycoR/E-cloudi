@@ -30,16 +30,23 @@ export async function POST(req: NextRequest) {
     );
 
     // Obtenemos los resultados de salida
-    const [rows] = await db.query(`SELECT @direccion_id AS direccion_id, @resultado AS resultado`);
+    const [rows] = await db.query(
+      `SELECT @direccion_id AS direccion_id, @resultado AS resultado`
+    );
     const salida = (rows as { direccion_id: number; resultado: string }[])[0];
 
-    return NextResponse.json({
-      direccion_id: salida.direccion_id,
-      resultado: salida.resultado,
-    }, { status: 201 });
-
+    return NextResponse.json(
+      {
+        direccion_id: salida.direccion_id,
+        resultado: salida.resultado,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error al llamar al procedimiento:", error);
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Error interno del servidor" },
+      { status: 500 }
+    );
   }
 }

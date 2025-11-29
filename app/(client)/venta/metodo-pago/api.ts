@@ -54,7 +54,7 @@ const api = {
         quantity: Number(item.cantidad),
         unit_price: Number(item.precio),
       }));
-      
+
       // Usar cart como base y extraer los datos necesarios
       const cart_resumen = cart.map((item) => ({
         id_producto_especifico: item.id_producto_especifico ?? item.productId,
@@ -67,8 +67,10 @@ const api = {
       // Normalizar metadata a snake_case para MercadoPago
       const normalizedMetadata = {
         usuario_id: metadata.usuario_id ?? metadata.usuarioId ?? null,
-        direccion_envio_id: metadata.direccion_envio_id ?? metadata.direccionEnvioId ?? null,
-        metodo_envio_id: metadata.metodo_envio_id ?? metadata.metodoEnvioId ?? null,
+        direccion_envio_id:
+          metadata.direccion_envio_id ?? metadata.direccionEnvioId ?? null,
+        metodo_envio_id:
+          metadata.metodo_envio_id ?? metadata.metodoEnvioId ?? null,
         subtotal: metadata.subtotal,
         costo_envio: metadata.costo_envio ?? metadata.costoEnvio ?? 0,
         total: metadata.total,
@@ -95,9 +97,9 @@ const api = {
           payment_methods: {
             // Solo permitir: credit_card, debit_card, bank_transfer, digital_wallet
             excluded_payment_types: [
-              { id: "ticket" },         // PagoEfectivo, pagos en efectivo
-              { id: "prepaid_card" },   // Tarjetas prepago
-              { id: "paypal" },         // PayPal
+              { id: "ticket" }, // PagoEfectivo, pagos en efectivo
+              { id: "prepaid_card" }, // Tarjetas prepago
+              { id: "paypal" }, // PayPal
             ],
             installments: 1,
             default_installments: 1,

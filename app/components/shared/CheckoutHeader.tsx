@@ -13,7 +13,7 @@ const steps = [
 
 /**
  * CheckoutHeader - Header del proceso de checkout
- * 
+ *
  * Sigue las Heurísticas de Nielsen:
  * - #1 Visibilidad del estado del sistema: Muestra el progreso del usuario en el flujo de compra
  * - #4 Consistencia y estándares: Usa el mismo estilo visual que el header principal

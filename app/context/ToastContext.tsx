@@ -32,7 +32,7 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 /**
  * ToastProvider - Proveedor de notificaciones toast
- * 
+ *
  * Implementa las Heurísticas de Nielsen:
  * - #1 Visibilidad del estado del sistema: Feedback inmediato de acciones
  * - #5 Prevención de errores: Confirmación de acciones completadas
@@ -57,7 +57,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
         duration?: number;
       }
     ) => {
-      const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const id = `toast-${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
       const newToast: ToastData = {
         id,
         message,

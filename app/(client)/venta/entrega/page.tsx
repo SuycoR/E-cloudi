@@ -6,12 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCheckout } from "@/app/context/CheckoutContext";
 import { useCart } from "@/app/context/CartContext";
 import { formatPrice } from "@/app/utils/formatPrice";
-import {
-  MapPin,
-  Truck,
-  Store,
-  Plus,
-} from "lucide-react";
+import { MapPin, Truck, Store, Plus } from "lucide-react";
 import clsx from "clsx";
 import FormularioDireccion from "@/app/components/ui/FormularioDireccion";
 import Link from "next/link";

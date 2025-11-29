@@ -19,7 +19,6 @@ export default function LoginForm() {
   const [loginError, setLoginError] = useState("");
 
   const onSubmit = handleSubmit(async (data) => {
-    
     const res = await signIn("credentials", {
       email: data.email,
       password: data.password,
@@ -29,7 +28,7 @@ export default function LoginForm() {
     //const isError = res?.error;
     //console.log("variable",isError)
     if (res.error === undefined) {
-      sendGAEvent('event','login',{
+      sendGAEvent("event", "login", {
         method: "email",
       });
       console.log("redirigiendo");
@@ -38,7 +37,6 @@ export default function LoginForm() {
       //alert(res?.error);
       setLoginError("Correo o contraseña incorrectos");
       reset();
-
     }
   });
 

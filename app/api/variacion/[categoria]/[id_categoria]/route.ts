@@ -1,7 +1,7 @@
 // /app/api/variacion/[categoria]/[id_categoria]/route.ts
 
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db"; 
+import { db } from "@/lib/db";
 import { RowDataPacket } from "mysql2";
 import { Categoria } from "@/app/types/valorVariacion";
 
@@ -13,16 +13,23 @@ type Data = RowDataPacket & {
   valor_opcion: string;
 };
 
-// Trae todas las variaciones asociadas a una categoria, unica y exclusivamente 
+// Trae todas las variaciones asociadas a una categoria, unica y exclusivamente
 // de esa categoria.
-export async function GET(request: Request, { params }: { params: Promise<{ categoria: string; id_categoria: string }> }) {
-  const { categoria: categoriaStr, id_categoria: idCategoriaStr } = await params;
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ categoria: string; id_categoria: string }> }
+) {
+  const { categoria: categoriaStr, id_categoria: idCategoriaStr } =
+    await params;
   const categoria = parseInt(categoriaStr);
   const id_categoria = parseInt(idCategoriaStr);
 
   // Validamos que `categoria` sea 1, 2 o 3
   if (![1, 2, 3].includes(categoria)) {
-    return NextResponse.json({ error: "El parámetro categoría debe ser 1, 2 o 3." }, { status: 400 });
+    return NextResponse.json(
+      { error: "El parámetro categoría debe ser 1, 2 o 3." },
+      { status: 400 }
+    );
   }
 
   try {
@@ -51,7 +58,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ cate
     const categorias: Categoria[] = [];
 
     rows.forEach((row) => {
-      let categoria = categorias.find((cat) => cat.nombre_categoria === row.nombre_categoria);
+      let categoria = categorias.find(
+        (cat) => cat.nombre_categoria === row.nombre_categoria
+      );
       if (!categoria) {
         categoria = {
           id_categoria: row.id_categoria,
@@ -61,7 +70,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ cate
         categorias.push(categoria);
       }
 
-      let variacion = categoria.variaciones.find((v) => v.id_variacion === row.id_variacion);
+      let variacion = categoria.variaciones.find(
+        (v) => v.id_variacion === row.id_variacion
+      );
       if (!variacion) {
         variacion = {
           id_variacion: row.id_variacion,
@@ -80,6 +91,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ cate
     return NextResponse.json(categorias);
   } catch (error) {
     console.error("Error fetching variaciones:", error);
-    return NextResponse.json({ error: "Error fetching variaciones" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Error fetching variaciones" },
+      { status: 500 }
+    );
   }
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db"; 
+import { db } from "@/lib/db";
 import { RowDataPacket } from "mysql2";
 
 interface ResultadoRow extends RowDataPacket {
@@ -16,7 +16,10 @@ export async function GET(
   const id = parseInt(idStr);
 
   if (isNaN(level) || isNaN(id)) {
-    return NextResponse.json({ error: "Parámetros inválidos" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Parámetros inválidos" },
+      { status: 400 }
+    );
   }
 
   try {
@@ -29,9 +32,10 @@ export async function GET(
     const jsonResult = rows[0][0]?.resultado;
 
     // Si ya es objeto, úsalo tal cual
-    const data = typeof jsonResult === "string"
-      ? JSON.parse(jsonResult)
-      : jsonResult ?? [];
+    const data =
+      typeof jsonResult === "string"
+        ? JSON.parse(jsonResult)
+        : jsonResult ?? [];
 
     return NextResponse.json(data);
   } catch (error) {

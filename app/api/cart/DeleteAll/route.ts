@@ -1,7 +1,6 @@
-
-import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { auth } from "@/lib/auth";
 
 export async function DELETE() {
   try {
@@ -17,7 +16,7 @@ export async function DELETE() {
 
     if ((carritoRows as any[]).length === 0) {
       return NextResponse.json(
-        { error: 'El usuario no tiene carrito' },
+        { error: "El usuario no tiene carrito" },
         { status: 400 }
       );
     }
@@ -30,11 +29,14 @@ export async function DELETE() {
       [carritoId]
     );
 
-    return NextResponse.json({ success: true, message: 'Carrito vaciado con éxito' });
+    return NextResponse.json({
+      success: true,
+      message: "Carrito vaciado con éxito",
+    });
   } catch (error) {
-    console.error('Error en DELETE /api/cart/DeleteAll:', error);
+    console.error("Error en DELETE /api/cart/DeleteAll:", error);
     return NextResponse.json(
-      { error: 'Error al vaciar el carrito' },
+      { error: "Error al vaciar el carrito" },
       { status: 500 }
     );
   }

@@ -16,7 +16,7 @@ interface ToastProps {
 
 /**
  * Toast Component - Notificación temporal
- * 
+ *
  * Sigue las Heurísticas de Nielsen:
  * - #1 Visibilidad del estado del sistema: Informa al usuario sobre el resultado de sus acciones
  * - #9 Ayuda a los usuarios a reconocer, diagnosticar y recuperarse de errores: Muestra mensajes claros
@@ -70,7 +70,11 @@ export const Toast: React.FC<ToastProps> = ({
       role="alert"
       aria-live="polite"
       className={`fixed bottom-6 right-6 z-[9999] max-w-sm w-full transform transition-all duration-300 ease-out
-        ${isVisible && !isLeaving ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}
+        ${
+          isVisible && !isLeaving
+            ? "translate-y-0 opacity-100"
+            : "translate-y-4 opacity-0"
+        }
       `}
     >
       <div
@@ -129,9 +133,13 @@ export const Toast: React.FC<ToastProps> = ({
           <div className="mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ease-linear ${
-                type === "cart" ? "bg-green-500" : 
-                type === "error" ? "bg-red-500" : 
-                type === "info" ? "bg-sky-500" : "bg-green-500"
+                type === "cart"
+                  ? "bg-green-500"
+                  : type === "error"
+                  ? "bg-red-500"
+                  : type === "info"
+                  ? "bg-sky-500"
+                  : "bg-green-500"
               }`}
               style={{
                 width: "100%",

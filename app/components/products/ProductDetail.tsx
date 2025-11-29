@@ -313,9 +313,7 @@ function ProductSpecs({
       {marca && (
         <li className="text-gray-700 flex items-center gap-2">
           <strong className="text-gray-900">Marca:</strong>{" "}
-          <span className="bg-gray-100 px-2 py-1 rounded text-sm">
-            {marca}
-          </span>
+          <span className="bg-gray-100 px-2 py-1 rounded text-sm">{marca}</span>
         </li>
       )}
       {especificaciones &&

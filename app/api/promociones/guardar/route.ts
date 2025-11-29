@@ -26,13 +26,43 @@ export async function POST(request: Request) {
     const body: PromocionRequest = await request.json();
     console.log("📝 Body recibido:", JSON.stringify(body, null, 2));
     // Debug extra: tipos de los campos clave
-    console.log("[DEBUG] typeof body.nivel:", typeof body.nivel, "valor:", body.nivel);
-    console.log("[DEBUG] typeof body.combinable:", typeof body.combinable, "valor:", body.combinable);
-    console.log("[DEBUG] typeof body.porcentaje_descuento:", typeof body.porcentaje_descuento, "valor:", body.porcentaje_descuento);
-    console.log("[DEBUG] typeof body.destino:", typeof body.destino, "valor:", body.destino);
+    console.log(
+      "[DEBUG] typeof body.nivel:",
+      typeof body.nivel,
+      "valor:",
+      body.nivel
+    );
+    console.log(
+      "[DEBUG] typeof body.combinable:",
+      typeof body.combinable,
+      "valor:",
+      body.combinable
+    );
+    console.log(
+      "[DEBUG] typeof body.porcentaje_descuento:",
+      typeof body.porcentaje_descuento,
+      "valor:",
+      body.porcentaje_descuento
+    );
+    console.log(
+      "[DEBUG] typeof body.destino:",
+      typeof body.destino,
+      "valor:",
+      body.destino
+    );
     if (body.destino) {
-      console.log("[DEBUG] typeof body.destino.tipo:", typeof body.destino.tipo, "valor:", body.destino.tipo);
-      console.log("[DEBUG] typeof body.destino.ids:", typeof body.destino.ids, "valor:", body.destino.ids);
+      console.log(
+        "[DEBUG] typeof body.destino.tipo:",
+        typeof body.destino.tipo,
+        "valor:",
+        body.destino.tipo
+      );
+      console.log(
+        "[DEBUG] typeof body.destino.ids:",
+        typeof body.destino.ids,
+        "valor:",
+        body.destino.ids
+      );
     }
 
     // Validaciones básicas
@@ -158,7 +188,6 @@ async function aplicarPromocionPorProductos(
 
   // Convertir a string CSV
   const idsString = productoIds.join(",");
-
 
   // Llamar al Stored Procedure AplicarPromocion_Productos (ahora con nivel y combinable)
   // IMPORTANTE: El SP debe aceptar los nuevos parámetros en el mismo orden

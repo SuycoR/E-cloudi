@@ -23,7 +23,10 @@ export async function GET(
       [idProducto]
     );
     if (prodRows.length === 0) {
-      return NextResponse.json({ error: "Producto no existe" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Producto no existe" },
+        { status: 404 }
+      );
     }
     const prod = prodRows[0];
 
@@ -60,7 +63,7 @@ export async function GET(
         categoria3: prod.id_cat_n3,
         marca: prod.marca,
       },
-      productosEspecificos: espRows.map(pe => ({
+      productosEspecificos: espRows.map((pe) => ({
         ...pe,
         variaciones: variacionesPorEspecifico[pe.id_especifico] || [],
       })),

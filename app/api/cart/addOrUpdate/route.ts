@@ -1,16 +1,13 @@
 // app/api/cart/addOrUpdate/route.ts
 
-import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { auth } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
     const session = await auth();
-    const {
-      productId,
-      cantidad,
-    } = await req.json();
+    const { productId, cantidad } = await req.json();
 
     const userId = session?.user.id;
 
@@ -22,7 +19,7 @@ export async function POST(req: Request) {
 
     if ((stockRows as any[]).length === 0) {
       return NextResponse.json(
-        { error: 'Producto no encontrado' },
+        { error: "Producto no encontrado" },
         { status: 404 }
       );
     }
@@ -31,10 +28,7 @@ export async function POST(req: Request) {
 
     // 2. Verificar si hay stock disponible
     if (stockDisponible === 0) {
-      return NextResponse.json(
-        { error: 'NO HAY STOCK' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "NO HAY STOCK" }, { status: 400 });
     }
 
     // 3. Obtener o crear carrito del usuario
@@ -93,9 +87,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('Error en POST /api/cart/addOrUpdate:', err);
+    console.error("Error en POST /api/cart/addOrUpdate:", err);
     return NextResponse.json(
-      { error: 'Error al agregar/actualizar ítem en el carrito' },
+      { error: "Error al agregar/actualizar ítem en el carrito" },
       { status: 500 }
     );
   }

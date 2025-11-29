@@ -5,12 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCheckout } from "@/app/context/CheckoutContext";
 import { useCart } from "@/app/context/CartContext";
 import { formatPrice } from "@/app/utils/formatPrice";
-import {
-  X,
-  ShieldCheck,
-  Loader2,
-  CheckCircle2,
-} from "lucide-react";
+import { X, ShieldCheck, Loader2, CheckCircle2 } from "lucide-react";
 import clsx from "clsx";
 import Link from "next/link";
 

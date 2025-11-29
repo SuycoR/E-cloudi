@@ -1,5 +1,5 @@
 // /app/categoria/[categoryLevel]/[categoryId]/page.tsx
-'use client';
+"use client";
 
 import React, { useState, use } from "react";
 import VariationBox from "@/app/components/ui/VariationBox";
@@ -7,14 +7,14 @@ import ProductSection from "@/app/components/products/ProductSection";
 import { categorias } from "@/lib/categorias";
 import CategoryGrid from "@/app/components/ui/CategoriaGrid";
 import PriceRange from "@/app/components/products/ProductFilterPrice";
-import { 
-  Home, 
-  ChevronRight, 
-  Filter, 
-  DollarSign, 
-  Grid3X3, 
-  Package, 
-  Tag
+import {
+  Home,
+  ChevronRight,
+  Filter,
+  DollarSign,
+  Grid3X3,
+  Package,
+  Tag,
 } from "lucide-react";
 
 // Función que trae el nombre de los id's, permite hacer esto: "Inicio/perifericos/monitor"
@@ -43,7 +43,11 @@ function getBreadcrumb(level: number, id: number): string[] {
   return path;
 }
 
-export default function CategoriaPage({ params }: { params: Promise<{ level: string; id: string }> }) {
+export default function CategoriaPage({
+  params,
+}: {
+  params: Promise<{ level: string; id: string }>;
+}) {
   const resolvedParams = use(params);
   const categoryLevel = Number(resolvedParams.level);
   const categoryId = Number(resolvedParams.id);
@@ -54,11 +58,13 @@ export default function CategoriaPage({ params }: { params: Promise<{ level: str
   const [initialMin, setInitialMin] = useState<number | null>(null);
   const [initialMax, setInitialMax] = useState<number | null>(null);
 
-
   // Para cambiar dinámicamente el filtro de ProductSection
-  const filterType = selectedVariations.length > 0 ? "byVariacion" : "byCategory";
+  const filterType =
+    selectedVariations.length > 0 ? "byVariacion" : "byCategory";
   // Usa una key única para forzar el remount de ProductSection
-  const productSectionKey = `${categoryId}-${categoryLevel}-${selectedVariations.join(',')}`;
+  const productSectionKey = `${categoryId}-${categoryLevel}-${selectedVariations.join(
+    ","
+  )}`;
   // Breadcrumb
   const breadcrumb = getBreadcrumb(categoryLevel, categoryId);
 
@@ -74,13 +80,16 @@ export default function CategoriaPage({ params }: { params: Promise<{ level: str
                   {i > 0 && (
                     <ChevronRight className="w-4 h-4 text-gray-400 mx-2" />
                   )}
-                  <div className={`
+                  <div
+                    className={`
                     transition-all duration-300 px-4 py-2 rounded-lg flex items-center gap-2
-                    ${i === breadcrumb.length - 1 
-                      ? "bg-gradient-to-r from-ebony-700 to-ebony-800 text-white font-semibold shadow-lg transform hover:scale-105" 
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:shadow-md"
+                    ${
+                      i === breadcrumb.length - 1
+                        ? "bg-gradient-to-r from-ebony-700 to-ebony-800 text-white font-semibold shadow-lg transform hover:scale-105"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:shadow-md"
                     }
-                  `}>
+                  `}
+                  >
                     {i === 0 && <Home className="w-4 h-4" />}
                     <span>{item}</span>
                   </div>
@@ -128,15 +137,17 @@ export default function CategoriaPage({ params }: { params: Promise<{ level: str
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <div className="w-3 h-3 bg-ebony-700 rounded-full animate-pulse"></div>
-                        <span className="text-sm font-medium text-ebony-800">Precio Actual</span>
+                        <span className="text-sm font-medium text-ebony-800">
+                          Precio Actual
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2 text-sm">
                         <span className="px-3 py-1 bg-ebony-100 text-ebony-800 rounded-full font-semibold">
-                          ${minPrecio || '0'}
+                          ${minPrecio || "0"}
                         </span>
                         <span className="text-ebony-400">-</span>
                         <span className="px-3 py-1 bg-ebony-100 text-ebony-800 rounded-full font-semibold">
-                          ${maxPrecio || '0'}
+                          ${maxPrecio || "0"}
                         </span>
                       </div>
                     </div>
@@ -183,7 +194,9 @@ export default function CategoriaPage({ params }: { params: Promise<{ level: str
                   {selectedVariations.length > 0 && (
                     <div className="flex items-center bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
                       <Tag className="w-4 h-4 mr-2" />
-                      {selectedVariations.length} filtro{selectedVariations.length > 1 ? 's' : ''} aplicado{selectedVariations.length > 1 ? 's' : ''}
+                      {selectedVariations.length} filtro
+                      {selectedVariations.length > 1 ? "s" : ""} aplicado
+                      {selectedVariations.length > 1 ? "s" : ""}
                     </div>
                   )}
                 </h2>
@@ -242,7 +255,6 @@ export default function CategoriaPage({ params }: { params: Promise<{ level: str
             }
           }}
         />
-
       </div>
     </div>
   );

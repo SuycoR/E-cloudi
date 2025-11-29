@@ -20,7 +20,7 @@ interface AddToCartButtonProps {
 
 /**
  * AddToCartButton - Botón para agregar productos al carrito
- * 
+ *
  * Implementa las Heurísticas de Nielsen:
  * - #1 Visibilidad del estado del sistema: Muestra estados de carga y confirmación
  * - #3 Control y libertad del usuario: Permite agregar productos fácilmente
@@ -85,11 +85,11 @@ export const AddToCartButton = ({
 
     try {
       await addItem(item);
-      
+
       // Mostrar animación de éxito y toast
       setJustAdded(true);
       showCartToast(nombre, imagen);
-      
+
       sendGAEvent("event", "add_to_cart", {
         item_id: productId,
         item_name: nombre,
@@ -110,7 +110,11 @@ export const AddToCartButton = ({
   };
 
   const disabled =
-    loading || stock === null || stock <= 0 || cantidadEnCarrito >= stock || isAdding;
+    loading ||
+    stock === null ||
+    stock <= 0 ||
+    cantidadEnCarrito >= stock ||
+    isAdding;
 
   return (
     <button
@@ -135,15 +139,24 @@ export const AddToCartButton = ({
           : "Agregar al carrito"
       }
       className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed
-        ${justAdded 
-          ? "bg-green-500 scale-110" 
-          : "bg-slate-800 hover:bg-slate-700 hover:scale-105"
+        ${
+          justAdded
+            ? "bg-green-500 scale-110"
+            : "bg-slate-800 hover:bg-slate-700 hover:scale-105"
         } ${className}`}
     >
       {isAdding ? (
-        <Loader2 size={24} className="animate-spin text-white" aria-hidden="true" />
+        <Loader2
+          size={24}
+          className="animate-spin text-white"
+          aria-hidden="true"
+        />
       ) : justAdded ? (
-        <Check size={24} className="text-white animate-bounce-in" aria-hidden="true" />
+        <Check
+          size={24}
+          className="text-white animate-bounce-in"
+          aria-hidden="true"
+        />
       ) : (
         <ShoppingCart size={24} color="white" aria-hidden="true" />
       )}

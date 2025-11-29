@@ -1,7 +1,10 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/lib/db";
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id } = await params;
   const idProductoEspecifico = parseInt(id, 10);
 
@@ -17,7 +20,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     );
 
     if (Array.isArray(checkRows) && checkRows.length > 0) {
-      return NextResponse.json({ message: "El producto ya está deshabilitado" }, { status: 200 });
+      return NextResponse.json(
+        { message: "El producto ya está deshabilitado" },
+        { status: 200 }
+      );
     }
 
     // Llamar al procedimiento almacenado 'disableProduct'
@@ -30,10 +36,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     );
 
     if (!Array.isArray(rows) || rows.length === 0) {
-      return NextResponse.json({ error: "Producto específico no encontrado" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Producto específico no encontrado" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ success: true, message: "Producto deshabilitado" });
+    return NextResponse.json({
+      success: true,
+      message: "Producto deshabilitado",
+    });
   } catch (err) {
     console.error("Error al deshabilitar producto específico:", err);
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });

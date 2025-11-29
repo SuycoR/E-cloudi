@@ -44,7 +44,10 @@ export async function POST(req: NextRequest) {
     if (error instanceof Response) return error;
     console.error("avatar validate error", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "No se pudo validar la foto" },
+      {
+        error:
+          error instanceof Error ? error.message : "No se pudo validar la foto",
+      },
       { status: 500 }
     );
   }

@@ -1,11 +1,6 @@
 "use client";
 
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-  useRef,
-} from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import {
   UploadCloud,
@@ -958,7 +953,7 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
 
       {/* Success / Loading modal - Diseño unificado siguiendo Nielsen #4 (Consistencia) */}
       {showSuccessModal && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center"
           role="dialog"
           aria-modal="true"
@@ -1018,9 +1013,7 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
               {modalLoading && (
                 <div className="mb-6">
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-sky-500 to-purple-500 rounded-full animate-progress-indeterminate"
-                    />
+                    <div className="h-full bg-gradient-to-r from-sky-500 to-purple-500 rounded-full animate-progress-indeterminate" />
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
                     Por favor no cierres esta ventana
@@ -1063,7 +1056,11 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
                   setModalInsertedIds([]);
                 }}
               >
-                {modalLoading ? "Guardando..." : modalError ? "Cerrar" : "Continuar"}
+                {modalLoading
+                  ? "Guardando..."
+                  : modalError
+                  ? "Cerrar"
+                  : "Continuar"}
               </button>
             </div>
           </div>

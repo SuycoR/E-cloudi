@@ -108,7 +108,8 @@ export async function POST(request: Request) {
         id_estado_orden: 1,
         subtotal_orden: payment.metadata?.subtotal || 0,
         costo_envio: payment.metadata?.costo_envio || 0,
-        total_orden: payment.metadata?.subtotal + payment.metadata?.costo_envio || 0,
+        total_orden:
+          payment.metadata?.subtotal + payment.metadata?.costo_envio || 0,
       });
       const [result] = await db.query<ResultSetHeader>(
         `INSERT INTO orden (

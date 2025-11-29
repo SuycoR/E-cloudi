@@ -130,8 +130,9 @@ const VirtualAvatarWizard = () => {
   const [savedAvatar, setSavedAvatar] = useState<UserAvatarRecord | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [photoValidation, setPhotoValidation] =
-    useState<PhotoValidationState>(DEFAULT_VALIDATION_STATE);
+  const [photoValidation, setPhotoValidation] = useState<PhotoValidationState>(
+    DEFAULT_VALIDATION_STATE
+  );
 
   useEffect(() => {
     return () => {
@@ -263,11 +264,9 @@ const VirtualAvatarWizard = () => {
   }, [photoValidation.status]);
 
   const shouldShowReasons =
-    photoValidation.status !== "approved" &&
-    photoValidation.reasons.length > 0;
+    photoValidation.status !== "approved" && photoValidation.reasons.length > 0;
   const shouldShowTips =
-    photoValidation.status !== "approved" &&
-    photoValidation.tips.length > 0;
+    photoValidation.status !== "approved" && photoValidation.tips.length > 0;
 
   const runPhotoValidation = async (file: File) => {
     if (validationControllerRef.current) {
@@ -299,7 +298,8 @@ const VirtualAvatarWizard = () => {
       }
 
       const validation = payload?.result;
-      const verdict = validation?.verdict === "approved" ? "approved" : "rejected";
+      const verdict =
+        validation?.verdict === "approved" ? "approved" : "rejected";
       setPhotoValidation({
         status: verdict,
         reasons: sanitizeClientList(validation?.reasons),
@@ -1053,8 +1053,8 @@ const VirtualAvatarWizard = () => {
               ¡Avatar generado!
             </h4>
             <p className="mt-2 text-sm text-gray-600">
-              Guardamos tu avatar en la nube. Te redireccionaremos a &ldquo;Mi perfil&rdquo;
-              para que puedas administrarlo.
+              Guardamos tu avatar en la nube. Te redireccionaremos a &ldquo;Mi
+              perfil&rdquo; para que puedas administrarlo.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
               <button

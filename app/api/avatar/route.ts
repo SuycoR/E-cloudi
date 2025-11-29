@@ -134,14 +134,12 @@ export async function POST(req: NextRequest) {
         aiColorimetria?.subtono ??
         readText(formData.get("subtono")) ??
         FALLBACK_COLOR_PROFILE.subtono,
-      recommended:
-        aiColorimetria?.coloresRecomendados?.length
-          ? aiColorimetria.coloresRecomendados
-          : fallbackRecommended,
-      avoid:
-        aiColorimetria?.coloresEvitar?.length
-          ? aiColorimetria.coloresEvitar
-          : fallbackAvoid,
+      recommended: aiColorimetria?.coloresRecomendados?.length
+        ? aiColorimetria.coloresRecomendados
+        : fallbackRecommended,
+      avoid: aiColorimetria?.coloresEvitar?.length
+        ? aiColorimetria.coloresEvitar
+        : fallbackAvoid,
     });
 
     const row = await fetchAvatarRow(userId);
@@ -189,7 +187,8 @@ export async function PUT(req: NextRequest) {
     }
 
     const shouldRefreshPalette =
-      file instanceof File || readText(formData.get("actualizarColorimetria")) === "1";
+      file instanceof File ||
+      readText(formData.get("actualizarColorimetria")) === "1";
     const aiColorimetria =
       shouldRefreshPalette && imageUrl
         ? await fetchColorimetriaForAvatar(

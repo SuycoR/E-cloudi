@@ -64,7 +64,8 @@ export default function MisDireccionesPage() {
   }
 
   // Si el error es porque no hay direcciones, no bloquees el flujo, solo muestra el mensaje y el botón para crear
-  const noDirections = error && error.toLowerCase().includes("no se encontraron direcciones");
+  const noDirections =
+    error && error.toLowerCase().includes("no se encontraron direcciones");
 
   if (error && !noDirections) {
     return <div className="text-red-600">{error}</div>;
@@ -146,7 +147,7 @@ export default function MisDireccionesPage() {
   const handleCloseModal = async (shouldRefresh = false) => {
     setIsModalOpen(false);
     setEditDirection(null);
-    
+
     // Si se indica que se debe refrescar, volver a obtener las direcciones
     if (shouldRefresh) {
       setLoading(true);
@@ -157,9 +158,7 @@ export default function MisDireccionesPage() {
   const handleDelete = async (direction: Direccion) => {
     if (!session?.user?.id || !direction.id) return;
 
-    const confirmacion = confirm(
-      "¿Seguro que deseas eliminar esta dirección?"
-    );
+    const confirmacion = confirm("¿Seguro que deseas eliminar esta dirección?");
     if (!confirmacion) return;
 
     const resultado = await deleteDireccionHandler(
@@ -168,9 +167,7 @@ export default function MisDireccionesPage() {
     );
     if (resultado.ok) {
       // Elimina visualmente la dirección de la lista sin recargar
-      setDirections((prev) =>
-        prev.filter((d) => d.id !== direction.id)
-      );
+      setDirections((prev) => prev.filter((d) => d.id !== direction.id));
     } else {
       alert(resultado.mensaje);
     }
@@ -191,8 +188,8 @@ export default function MisDireccionesPage() {
               className={
                 `rounded-lg shadow-md border p-6 hover:shadow-lg transition-shadow duration-200 ` +
                 (direction.isPrimary
-                  ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-200'
-                  : 'bg-white border-gray-200')
+                  ? "bg-blue-50 border-blue-300 ring-1 ring-blue-200"
+                  : "bg-white border-gray-200")
               }
             >
               <div className="flex items-center justify-between">
@@ -212,7 +209,11 @@ export default function MisDireccionesPage() {
                     </label>
                   </div>
 
-                  <p className={`font-medium mb-1 ${direction.isPrimary ? 'text-blue-800' : 'text-gray-800'}`}>
+                  <p
+                    className={`font-medium mb-1 ${
+                      direction.isPrimary ? "text-blue-800" : "text-gray-800"
+                    }`}
+                  >
                     {formatAddress(direction)}
                   </p>
 

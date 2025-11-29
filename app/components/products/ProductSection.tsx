@@ -80,7 +80,7 @@ const ProductSection = ({
             // No se añaden parámetros específicos
             break;
         }
-        
+
         if (limit) {
           params.append("limit", limit.toString());
         }

@@ -71,7 +71,9 @@ export const authOptions = {
         token.typeDocument = (
           user as unknown as { typeDocument: string }
         ).typeDocument;
-        token.documentId = (user as unknown as { documentId: string }).documentId;
+        token.documentId = (
+          user as unknown as { documentId: string }
+        ).documentId;
       }
       return token;
     },

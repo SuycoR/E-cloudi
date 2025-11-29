@@ -5,10 +5,11 @@ import { fetchProductVariationsByProductId } from "@/lib/products";
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const productId = Number(params.id);
+    const { id } = await params;
+    const productId = Number(id);
     if (Number.isNaN(productId)) {
       return NextResponse.json(
         { error: "ID de producto inválido" },

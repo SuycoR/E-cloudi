@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import ProductList from "./ProductList";
 import ProductCarousel from "./ProductCarousel";
 import type { ProductSectionProps, ProductCardProps } from "@/app/types/props";
+import AnimatedSection from "../ui/AnimatedSection";
+import ProductCardSkeleton from "./ProductCardSkeleton";
+import { Loader2 } from "lucide-react";
 
 const ProductSection = ({
   title,
@@ -19,16 +22,17 @@ const ProductSection = ({
   minPrecio,
   maxPrecio,
   onPrecioChange, // Callback para manejar cambios de precio
-  itemsPage
+  itemsPage,
 }: ProductSectionProps) => {
   const [productos, setProductos] = useState<ProductCardProps[]>([]);
-  const [, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [, setError] = useState<string | null>(null);
   const [, setMinPrecio] = useState<string | null>(minPrecio || null);
   const [, setMaxPrecio] = useState<string | null>(maxPrecio || null);
 
   useEffect(() => {
     async function fetchProducts() {
+      setLoading(true);
       try {
         const params = new URLSearchParams();
 
@@ -76,7 +80,7 @@ const ProductSection = ({
             // No se añaden parámetros específicos
             break;
         }
-        console.log(filterType)
+        
         if (limit) {
           params.append("limit", limit.toString());
         }
@@ -88,12 +92,12 @@ const ProductSection = ({
             params.append("maxPrecio", MaxPrecioEnvia.toString());
           }
         }
-          const response = await fetch(`/api/productos?${params.toString()}`);
-          if (!response.ok) {
-            throw new Error("Error al cargar los productos");
-          }
-          const data = await response.json();
-          /*
+        const response = await fetch(`/api/productos?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error("Error al cargar los productos");
+        }
+        const data = await response.json();
+        /*
           console.log("Datos obtenidos:", data);
           {
             products: Array(6),
@@ -102,55 +106,79 @@ const ProductSection = ({
           }
           */
 
-          if (Array.isArray(data.products)) {
-            setProductos(data.products);
-            setMinPrecio(data.minPrecio);
-            setMaxPrecio(data.maxPrecio);
-            if (onPrecioChange) {
-              onPrecioChange(data.minPrecio, data.maxPrecio);
-            }
-          } else {
-            setProductos([]);
+        if (Array.isArray(data.products)) {
+          setProductos(data.products);
+          setMinPrecio(data.minPrecio);
+          setMaxPrecio(data.maxPrecio);
+          if (onPrecioChange) {
+            onPrecioChange(data.minPrecio, data.maxPrecio);
           }
-
-
-        } catch (error) {
-          console.error("Error al obtener productos:", error);
-          setError("Error al cargar los productos");
+        } else {
           setProductos([]);
-
         }
+      } catch {
+        setError("Error al cargar los productos");
+        setProductos([]);
+      } finally {
+        setLoading(false);
       }
+    }
     fetchProducts();
-    }, [
-      filterType,
-      categoryId,
-      categoryLevel,
-      promotionId,
-      limit,
-      selectedVariations,
-      MinPrecioEnvia,
-      MaxPrecioEnvia,
-    ]);
+  }, [
+    filterType,
+    categoryId,
+    categoryLevel,
+    promotionId,
+    limit,
+    selectedVariations,
+    MinPrecioEnvia,
+    MaxPrecioEnvia,
+  ]);
 
   return (
     <section>
       <div className="container-padding py-6 sm:py-8 lg:py-12 flex flex-col gap-8">
-        <div className="flex flex-col gap-6 sm:gap-8">
-          <h2 className="text-xl sm:text-1xl lg:text-2xl font-bold text-gray-900 text-center sm:text-left">
-            {title}
-          </h2>
-        </div>
+        <AnimatedSection animation="fade-up" delay={100}>
+          <div className="flex flex-col gap-6 sm:gap-8">
+            <h2 className="text-xl sm:text-1xl lg:text-2xl font-bold text-gray-900 text-center sm:text-left">
+              {title}
+            </h2>
+          </div>
+        </AnimatedSection>
 
         <div className="w-full">
-          {asCarousel ? (
-            <ProductCarousel productos={productos} />
+          {loading ? (
+            <div
+              className="animate-fade-in"
+              role="status"
+              aria-label="Cargando productos"
+              aria-live="polite"
+            >
+              {/* Loading state con skeleton */}
+              <div className="flex items-center justify-center gap-3 mb-6 text-sky-600">
+                <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+                <span className="text-sm font-medium">
+                  Cargando productos...
+                </span>
+              </div>
+
+              {/* Skeleton grid usando el componente ProductCardSkeleton */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <ProductCardSkeleton count={limit || 6} />
+              </div>
+            </div>
           ) : (
-            <ProductList
-              productos={productos}
-              horizontal={false}
-              itemsPage={itemsPage}
-            />
+            <AnimatedSection animation="fade-in" delay={200}>
+              {asCarousel ? (
+                <ProductCarousel productos={productos} />
+              ) : (
+                <ProductList
+                  productos={productos}
+                  horizontal={false}
+                  itemsPage={itemsPage}
+                />
+              )}
+            </AnimatedSection>
           )}
         </div>
       </div>

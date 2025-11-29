@@ -33,7 +33,6 @@ export default function MisDireccionesPage() {
     try {
       const usuario_id = session.user.id;
       const res = await fetch(`/api/direccion?usuario_id=${usuario_id}`);
-      console.log("res",res)
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -47,8 +46,7 @@ export default function MisDireccionesPage() {
         setDirections([]);
         setError(data.error || "Error al obtener las direcciones.");
       }
-    } catch (error) {
-      console.error("Hubo un problema con la solicitud:", error);
+    } catch {
       setError("Hubo un problema con la solicitud.");
     } finally {
       setLoading(false);

@@ -22,27 +22,7 @@ export default function HomePage() {
       alert("Debes seleccionar una dirección de envío antes de continuar.");
       return;
     }
-    // Log para debug: mostrar el cart completo antes de crear la preferencia
-    console.log("DEBUG cart antes de crearPreferenciaMP:", cart);
-    // Log para debug: mostrar el cartResumen que se enviará en metadata
-    const cartResumenDebug = cart.map(
-      ({ productId, precio, precioOriginal, descuento, cantidad }) => {
-        let precioFinal = Number(precioOriginal);
-        if (isNaN(precioFinal)) {
-          precioFinal = Number(precio);
-        }
-        if (isNaN(precioFinal)) {
-          precioFinal = 0;
-        }
-        return {
-          id_producto_especifico: productId,
-          precioOriginal: precioFinal,
-          descuento: Number(descuento ?? 0),
-          cantidad: Number(cantidad),
-        };
-      }
-    );
-    console.log("DEBUG cartResumen a enviar:", cartResumenDebug);
+    
     // Llama a la server action pasando los datos necesarios
     await crearPreferenciaMP({
       cart: cart.map(

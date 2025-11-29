@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/lib/db";
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  const idProductoEspecifico = parseInt(params.id, 10);
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const idProductoEspecifico = parseInt(id, 10);
 
   if (isNaN(idProductoEspecifico)) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });

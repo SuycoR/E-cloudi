@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { auth } from "../auth/[...nextauth]/route";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { uploadBufferToS3, deleteObjectFromS3 } from "@/lib/s3";
 import {

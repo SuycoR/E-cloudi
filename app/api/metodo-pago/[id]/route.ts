@@ -1,11 +1,11 @@
-simport { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { MetodoPagoRow } from "@/app/types/metodoPago";
 import { OkPacket, RowDataPacket } from "mysql2";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   
   const { id: idStr } = await params;

@@ -32,7 +32,7 @@ export default function CheckoutHeader() {
               <ShoppingBag className="text-ebony-950 w-4 h-4 sm:w-6 sm:h-6 lg:w-10 lg:h-10" />
             </div>
             <h1 className="text-ebony-800  text-lg sm:text-xl lg:text-2xl font-bold">
-              CompX
+              ecloudi
             </h1>
           </button>
 
@@ -47,7 +47,9 @@ export default function CheckoutHeader() {
               style={{
                 width:
                   currentIndex >= 0
-                    ? `calc(${(currentIndex / (steps.length - 1)) * 100}% - 2rem + 16px)`
+                    ? `calc(${
+                        (currentIndex / (steps.length - 1)) * 100
+                      }% - 2rem + 16px)`
                     : "0%",
               }}
             ></div>
@@ -68,8 +70,7 @@ export default function CheckoutHeader() {
                           "border-gray-300 text-gray-400":
                             !isCurrent && !isPast,
                           "border-orange-500 text-orange-500": isCurrent,
-                          "border-orange-500 bg-orange-500 text-white":
-                            isPast,
+                          "border-orange-500 bg-orange-500 text-white": isPast,
                         }
                       )}
                     >

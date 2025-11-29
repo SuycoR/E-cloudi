@@ -9,10 +9,11 @@ interface ResultadoRow extends RowDataPacket {
 // Se utiliza para saber las subcategorias de una categoria
 export async function GET(
   request: Request,
-  { params }: { params: { level: string; id: string } }
+  { params }: { params: Promise<{ level: string; id: string }> }
 ) {
-  const level = parseInt(params.level);
-  const id = parseInt(params.id);
+  const { level: levelStr, id: idStr } = await params;
+  const level = parseInt(levelStr);
+  const id = parseInt(idStr);
 
   if (isNaN(level) || isNaN(id)) {
     return NextResponse.json({ error: "Parámetros inválidos" }, { status: 400 });

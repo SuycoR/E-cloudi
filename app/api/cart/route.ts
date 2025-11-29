@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db"; // Usamos tu helper `db` en lugar de `pool`
-import { auth } from "../auth/[...nextauth]/route";
+import { auth } from "@/lib/auth";
 
 export async function GET() {
   //Traemos la session actual, tiene formato JSON

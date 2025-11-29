@@ -6,19 +6,27 @@ interface LoadingSpinnerProps {
   color_bg?: string;
 }
 
-const LoadingSpinner = ({ color_icon = "text-ebony-950", color_bg = "bg-transparent" }: LoadingSpinnerProps) => {
+const LoadingSpinner = ({
+  color_icon = "text-ebony-950",
+  color_bg = "bg-transparent",
+}: LoadingSpinnerProps) => {
   return (
-    <div className={`flex flex-col items-center justify-center min-h-screen ${color_bg} gap-6`}>
+    <div
+      className={`flex flex-col items-center justify-center min-h-screen ${color_bg} gap-6`}
+    >
       <div className="flex items-center justify-center">
         <ShoppingBag
           className={`w-20 h-20 animate-spin-slow ${color_icon} drop-shadow-lg`}
           style={{
-            animation: "spin 1.2s linear infinite, pulse 2s ease-in-out infinite",
+            animation:
+              "spin 1.2s linear infinite, pulse 2s ease-in-out infinite",
           }}
         />
       </div>
-      <span className={`${color_icon} text-lg font-semibold tracking-wide animate-pulse`}>
-        Cargando CompX...
+      <span
+        className={`${color_icon} text-lg font-semibold tracking-wide animate-pulse`}
+      >
+        Cargando ecloudi...
       </span>
       <style jsx global>{`
         @keyframes spin {

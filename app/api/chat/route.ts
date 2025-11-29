@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
   try {
     body = await request.json();
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "No se pudo leer el cuerpo de la solicitud." },
       { status: 400 }

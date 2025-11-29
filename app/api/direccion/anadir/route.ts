@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     //const es_predeterminado = isPrimary ? 1 : 0;
 
     // Ejecutamos el procedimiento almacenado
-    const [rows]: any = await db.query(
+    await db.query(
       `CALL CrearDireccionConUsuario(?, ?, ?, ?, ?, ?, @direccion_id, @resultado)`,
       [
         usuario_id,
@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
     );
 
     // Obtenemos los resultados de salida
-    const [[salida]]: any = await db.query(`SELECT @direccion_id AS direccion_id, @resultado AS resultado`);
+    const [rows] = await db.query(`SELECT @direccion_id AS direccion_id, @resultado AS resultado`);
+    const salida = (rows as { direccion_id: number; resultado: string }[])[0];
 
     return NextResponse.json({
       direccion_id: salida.direccion_id,

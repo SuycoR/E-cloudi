@@ -77,6 +77,7 @@ const Searchbar = () => {
           <ComboboxInput
             className="w-full bg-white h-11 pl-4 pr-12 border rounded-lg outline-none text-ebony-950 focus:shadow-lg focus:border-ebony-950 transition-all duration-200"
             placeholder="¿Qué estás buscando?"
+            aria-label="Buscar productos en la tienda"
             value={busqueda}
             onChange={(event) => {
               setBusqueda(event.target.value);
@@ -92,7 +93,10 @@ const Searchbar = () => {
             <Search className="text-ebony-950" size={30} />
           </ComboboxButton>
 
-          <ComboboxOptions className="flex flex-col absolute z-10 w-full bg-white rounded-lg shadow-lg max-h-90 p-5 gap-2 top-full mt-2 overflow-hidden ">
+          <ComboboxOptions
+            className="flex flex-col absolute z-10 w-full bg-white rounded-lg shadow-lg max-h-90 p-5 gap-2 top-full mt-2 overflow-hidden"
+            aria-label="Resultados de búsqueda"
+          >
             {isLoading ? (
               /* Cuando esté cargando */
               <div className="p-6 text-center">
@@ -115,7 +119,8 @@ const Searchbar = () => {
               /* Cuando hay productos que coinciden con la búsqueda */
               <div className="p-4">
                 <p className="text-ebony-900 text-sm font-bold mb-4 px-2">
-                  Productos para &quot;{busqueda}&quot; ({filteredProductos.length})
+                  Productos para &quot;{busqueda}&quot; (
+                  {filteredProductos.length})
                 </p>
                 <div>
                   {filteredProductos.slice(0, 3).map((producto) => (
@@ -123,7 +128,9 @@ const Searchbar = () => {
                       key={producto.producto_id}
                       value={producto}
                       className={({ active }) =>
-                        `flex rounded-lg cursor-pointer items-center gap-4 px-3 py-3 transition-colors duration-200 ${active ? "bg-ebony-100" : ""}`
+                        `flex rounded-lg cursor-pointer items-center gap-4 px-3 py-3 transition-colors duration-200 ${
+                          active ? "bg-ebony-100" : ""
+                        }`
                       }
                     >
                       <div className="flex-shrink-0">

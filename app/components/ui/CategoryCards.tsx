@@ -81,21 +81,37 @@ export default function CategoryCards({
   if (categories.length === 0) return null;
 
   return (
-    <section className="py-8 sm:py-10">
+    <section className="py-8 sm:py-10" aria-labelledby="category-title">
       <div className="container-padding">
         {/* Section Title */}
-        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 text-center mb-8">
+        <h2
+          id="category-title"
+          className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 text-center mb-8"
+        >
           {title}
         </h2>
 
         {/* Category Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
+        <div
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6"
+          role="list"
+          aria-label="Lista de categorías de productos"
+        >
           {categories.slice(0, 8).map((category, index) => (
-            <div
+            <article
               key={category.id}
               onClick={() => handleClick(category.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleClick(category.id);
+                }
+              }}
+              role="listitem"
+              tabIndex={0}
+              aria-label={`Categoría: ${category.nombre_categoria}. Presiona Enter para ver productos`}
               className={`group cursor-pointer rounded-2xl p-4 sm:p-5 transition-all duration-300 
-                         hover:shadow-lg hover:scale-105 ${
+                         hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 ${
                            cardColors[index % cardColors.length]
                          }`}
             >
@@ -103,7 +119,7 @@ export default function CategoryCards({
               <div className="aspect-square flex items-center justify-center mb-3">
                 <img
                   src={category.imagen || "/img/placeholder-category.png"}
-                  alt={category.nombre_categoria}
+                  alt={`Imagen de la categoría ${category.nombre_categoria}`}
                   className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
                   loading="lazy"
                   onError={(e) => {
@@ -118,7 +134,7 @@ export default function CategoryCards({
               <h3 className="text-center text-sm sm:text-base font-semibold text-gray-800 line-clamp-2">
                 {category.nombre_categoria}
               </h3>
-            </div>
+            </article>
           ))}
         </div>
 
@@ -128,7 +144,8 @@ export default function CategoryCards({
             <button
               onClick={() => router.push("/categoria/1/0")}
               className="px-6 py-3 bg-ebony-800 text-white font-semibold rounded-full 
-                       hover:bg-ebony-900 transition-colors duration-300"
+                       hover:bg-ebony-900 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-ebony-600 focus:ring-offset-2"
+              aria-label={`Ver todas las ${categories.length} categorías disponibles`}
             >
               Ver todas las categorías
             </button>

@@ -16,11 +16,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    // 3) Llamada al SP
-    console.log('Seteando método de pago predeterminado:', {
-      usuario_id,
-      metodo_pago_id
-    });
+    // 3) Llamada al SP para setear método de pago predeterminado
     await db.query('CALL sp_set_metodo_pago_predet(?, ?)', [
       usuario_id,
       metodo_pago_id
@@ -28,8 +24,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       { message: 'Método de pago predeterminado actualizado.' }
     );
-  } catch (err) {
-    console.error('Error al setear método predeterminado:', err);
+  } catch {
     return NextResponse.json(
       { error: 'Error interno al actualizar el método de pago.' },
       { status: 500 }

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { auth } from "@/app/api/auth/[...nextauth]/route";
+import { auth } from "@/lib/auth";
 import VirtualAvatarWizard from "@/app/components/profile/VirtualAvatarWizard";
 import ColorimetriaPanel from "@/app/components/profile/ColorimetriaPanel";
 import { getUserAvatarRecord } from "@/lib/avatarStorage";
@@ -15,17 +15,13 @@ const REQUIRED_AZURE_VARS = [
   "CONF_API_VERSION",
 ];
 
-type SearchParamsInput =
-  | Record<string, string | string[] | undefined>
-  | Promise<Record<string, string | string[] | undefined>>;
-
 type PageProps = {
-  searchParams?: SearchParamsInput;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 const AvatarVirtualPage = async ({ searchParams }: PageProps) => {
   const resolvedSearchParams = searchParams
-    ? await Promise.resolve(searchParams)
+    ? await searchParams
     : {};
 
   const avatar = await getStoredAvatar();

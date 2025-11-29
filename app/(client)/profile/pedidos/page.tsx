@@ -32,7 +32,8 @@ export default function PedidosPage() {
     if (session?.user?.id) {
       const fetchPedidos = async () => {
         try {
-          const usuarioId = session.user.id;
+          const usuarioId = session.user?.id;
+          if (!usuarioId) return;
           const res = await fetch(`/api/pedidos?usuario_id=${usuarioId}`);
 
           if (res.ok) {

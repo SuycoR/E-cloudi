@@ -6,6 +6,7 @@ import React, {
   useReducer,
   ReactNode,
   useEffect,
+  useState,
 } from "react";
 import { CartItem } from "@/app/types/itemCarrito";
 
@@ -70,6 +71,7 @@ interface CartContextValue {
   updateQuantity: (productId: number, quantity: number) => Promise<void>;
   clearCart: () => void;
   setCart: (items: CartItem[]) => void;
+  cartAnimationTrigger: number; // Para animaciones cuando se añade al carrito
 }
 
 const CartContext = createContext<CartContextValue>({
@@ -79,10 +81,12 @@ const CartContext = createContext<CartContextValue>({
   updateQuantity: async () => {},
   clearCart: () => {},
   setCart: () => {},
+  cartAnimationTrigger: 0,
 });
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, dispatch] = useReducer(cartReducer, []);
+  const [cartAnimationTrigger, setCartAnimationTrigger] = useState(0);
 
   const setCart = (items: CartItem[]) => {
     dispatch({ type: "SET_ITEMS", payload: items });
@@ -128,6 +132,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   // 3) Agregar ítem
   const addItem = async (item: CartItem) => {
     dispatch({ type: "ADD_ITEM", payload: item });
+    // Trigger animation for cart icon
+    setCartAnimationTrigger((prev) => prev + 1);
     try {
       await addOrUpdateItem(item);
     } catch (err) {
@@ -172,7 +178,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <CartContext.Provider
-      value={{ cart, addItem, removeItem, updateQuantity, clearCart, setCart }}
+      value={{ cart, addItem, removeItem, updateQuantity, clearCart, setCart, cartAnimationTrigger }}
     >
       {children}
     </CartContext.Provider>

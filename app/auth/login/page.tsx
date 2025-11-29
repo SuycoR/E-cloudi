@@ -13,10 +13,10 @@ export default function LoginPage() {
           {/* Logo arriba */}
           <button
             className="flex items-center gap-2 mb-12 cursor-pointer hover:transform hover:scale-105 transition-transform duration-300"
-            onClick={() => router.push('/')}
+            onClick={() => router.push("/")}
           >
             <ShoppingBag className="w-6 h-6 text-white lg:w-8 lg:h-8" />
-            <h1 className="text-2xl font-bold">CompX</h1>
+            <h1 className="text-2xl font-bold">ecloudi</h1>
           </button>
 
           {/* Contenedor central centrado verticalmente */}

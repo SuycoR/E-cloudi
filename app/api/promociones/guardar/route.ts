@@ -74,12 +74,10 @@ export async function POST(request: Request) {
       await connection.beginTransaction();
       console.log("🔄 Transacción iniciada");
 
-      let resultData: any;
-
       console.log("📦 Procesando promoción por productos");
       const { promocion_id, productos_afectados } =
         await aplicarPromocionPorProductos(connection, body);
-      resultData = { promocion_id, productos_afectados };
+      const resultData = { promocion_id, productos_afectados };
 
       await connection.commit();
       console.log("✅ Transacción confirmada");

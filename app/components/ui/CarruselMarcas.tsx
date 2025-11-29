@@ -1,5 +1,4 @@
 "use client";
-import LoadingSpinner from "./LoadingSpinner";
 import { useEffect, useState, useRef } from "react";
 import { Marca } from "@/app/types/marca";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -68,9 +67,35 @@ export default function CarruselMarcas({
 
   if (marcas.length === 0) {
     return (
-      <div className="w-full flex items-center justify-center py-8">
-        <LoadingSpinner color_icon="text-ebony-950" color_bg="bg-transparent" />
-      </div>
+      <section
+        className="py-8 sm:py-10 bg-gray-50"
+        role="status"
+        aria-label="Cargando marcas"
+      >
+        <div className="container-padding">
+          {showTitle && (
+            <div className="h-8 w-48 bg-gray-200 rounded-lg mx-auto mb-8 skeleton" />
+          )}
+          <div className="flex gap-4 overflow-hidden mx-6 sm:mx-10">
+            {Array.from({ length: MARCAS_VISIBLES }).map((_, idx) => (
+              <div
+                key={idx}
+                className="flex-shrink-0 px-2 sm:px-4"
+                style={{ width: `${100 / MARCAS_VISIBLES}%` }}
+              >
+                <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+                  <div className="aspect-[3/2] flex items-center justify-center">
+                    <div className="w-full h-full bg-gray-200 rounded-lg relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-shimmer" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <span className="sr-only">Cargando marcas disponibles</span>
+      </section>
     );
   }
 

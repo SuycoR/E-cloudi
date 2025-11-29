@@ -15,19 +15,27 @@ interface CartItem {
   id_producto_especifico?: number;
 }
 
+interface CartResumenItem {
+  id_producto_especifico?: number;
+  productId?: number;
+  precioOriginal?: number;
+  descuento?: number;
+  cantidad: number;
+}
+
 interface CheckoutMetadata {
-  usuario_id: string | null;
-  direccion_envio_id: number | null;
-  metodo_envio_id: number | null;
+  usuario_id?: string | null;
+  usuarioId?: string | null;
+  direccion_envio_id?: number | null;
+  direccionEnvioId?: number | null;
+  metodo_envio_id?: number | null;
+  metodoEnvioId?: number | null;
   subtotal: number;
-  costo_envio: number;
+  costo_envio?: number;
+  costoEnvio?: number;
   total: number;
-  cart_resumen: Array<{
-    id_producto_especifico: number;
-    precioOriginal: number;
-    descuento: number;
-    cantidad: number;
-  }>;
+  cartResumen?: CartResumenItem[];
+  cart_resumen?: CartResumenItem[];
 }
 
 const api = {
@@ -47,31 +55,31 @@ const api = {
         unit_price: Number(item.precio),
       }));
       
-      const cart_resumen_base = Array.isArray(metadata.cartResumen)
-        ? metadata.cartResumen
-        : Array.isArray(metadata.cart_resumen)
-        ? metadata.cart_resumen
-        : cart;
-
-      const cart_resumen = cart_resumen_base.map((item, idx) => ({
-        
+      // Usar cart como base y extraer los datos necesarios
+      const cart_resumen = cart.map((item) => ({
         id_producto_especifico: item.id_producto_especifico ?? item.productId,
-        nombre: item.nombre ?? cart[idx]?.nombre, // Siempre intenta incluir el nombre
-        precioOriginal: item.precioOriginal ?? item.precio_original ?? Number(item.precio) ?? 0,
+        nombre: item.nombre,
+        precioOriginal: item.precioOriginal ?? Number(item.precio) ?? 0,
         descuento: Number(item.descuento ?? 0),
         cantidad: Number(item.cantidad),
       }));
 
-
+      // Normalizar metadata a snake_case para MercadoPago
+      const normalizedMetadata = {
+        usuario_id: metadata.usuario_id ?? metadata.usuarioId ?? null,
+        direccion_envio_id: metadata.direccion_envio_id ?? metadata.direccionEnvioId ?? null,
+        metodo_envio_id: metadata.metodo_envio_id ?? metadata.metodoEnvioId ?? null,
+        subtotal: metadata.subtotal,
+        costo_envio: metadata.costo_envio ?? metadata.costoEnvio ?? 0,
+        total: metadata.total,
+        cart_resumen,
+      };
 
       // Crear la preferencia con solo los métodos de pago permitidos
       const preference = await new Preference(mercadopago).create({
         body: {
           items,
-          metadata: {
-            ...metadata,
-            cart_resumen,
-          },
+          metadata: normalizedMetadata,
           back_urls: {
             success: `${
               process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"

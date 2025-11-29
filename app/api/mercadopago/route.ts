@@ -1,10 +1,11 @@
 import { Payment } from "mercadopago";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import api, { mercadopago } from "@/app/(client)/venta/metodo-pago/api";
+import { mercadopago } from "@/app/(client)/venta/metodo-pago/api";
 import type { ResultSetHeader } from "mysql2";
 
 // Variable global temporal para almacenar el último pago
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let lastPaymentResumen: any = null;
 
 export async function POST(request: Request) {

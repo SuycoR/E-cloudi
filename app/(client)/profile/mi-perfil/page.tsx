@@ -106,18 +106,9 @@ export default function MiPerfilPage() {
         throw new Error(err.error || "Error al guardar");
       }
 
-      const data = await response.json();
-      console.log({
-        id: session?.user?.id, // Asegúrate que exista
-        name: formData.name,
-        surname: formData.surname,
-        email: formData.email,
-        phone: formData.phone,
-      });
-      console.log("Usuario actualizado:", data.message);
+      await response.json();
       setToggleEdit(false);
-    } catch (error) {
-      console.error("Error al actualizar perfil:", error);
+    } catch {
       alert("Hubo un error al guardar los cambios");
     }
   };

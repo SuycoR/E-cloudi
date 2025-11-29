@@ -1,5 +1,5 @@
 // app/api/generar-boleta/route.ts
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
@@ -20,16 +20,21 @@ interface InfoBoletaRow extends RowDataPacket {
   r_departamento: string;
   r_pais: string;
   r_metodo_envio: string;
-  r_estado: string; 
+  r_estado: string;
 }
 
 export async function POST(request: Request) {
   try {
     const {
-      usuarioId, metodoPagoId,
-      direccionEnvioId, metodoEnvioId,
-      estadoOrdenId, items,
-      subtotal, costoEnvio, total
+      usuarioId,
+      metodoPagoId,
+      direccionEnvioId,
+      metodoEnvioId,
+      estadoOrdenId,
+      items,
+      subtotal,
+      costoEnvio,
+      total,
     } = await request.json();
 
     // 1) Ejecutar SP y extraer la primera fila
@@ -41,8 +46,13 @@ export async function POST(request: Request) {
 
     console.log("Route - InfoBoleta:", info);
     console.log("Route - Items:", items);
-    console.log("Route - Subtotal, CostoEnvío, Total:", subtotal, costoEnvio, total);
-    
+    console.log(
+      "Route - Subtotal, CostoEnvío, Total:",
+      subtotal,
+      costoEnvio,
+      total
+    );
+
     if (!info) {
       return NextResponse.json(
         { error: "No se encontraron datos para la boleta especificada." },
@@ -57,10 +67,21 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    console.log(typeof(subtotal), subtotal, typeof(costoEnvio), costoEnvio, typeof(total), total);
+    console.log(
+      typeof subtotal,
+      subtotal,
+      typeof costoEnvio,
+      costoEnvio,
+      typeof total,
+      total
+    );
     // 3) Generar PDF
     const pdfBuffer = await generarBoletaPDF(
-      info, items, subtotal, costoEnvio, subtotal + costoEnvio
+      info,
+      items,
+      subtotal,
+      costoEnvio,
+      subtotal + costoEnvio
     );
     if (!Buffer.isBuffer(pdfBuffer)) {
       throw new Error("El PDF generado no es un Buffer.");
@@ -73,15 +94,15 @@ export async function POST(request: Request) {
     }
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: { user: MAIL_USER, pass: MAIL_PASS }
+      auth: { user: MAIL_USER, pass: MAIL_PASS },
     });
 
     await transporter.sendMail({
       from: MAIL_USER,
       to: info.r_email.trim(),
-      subject: "CompX: Boleta",
+      subject: "ecloudi: Boleta",
       text: "Gracias por tu compra, agradecemos su confianza en nuestro servicio.",
-      attachments: [{ filename: "boleta_compra.pdf", content: pdfBuffer }]
+      attachments: [{ filename: "boleta_compra.pdf", content: pdfBuffer }],
     });
 
     return NextResponse.json({ message: "Boleta generada y enviada." });

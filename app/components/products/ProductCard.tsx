@@ -2,23 +2,19 @@
 import React, { useState } from "react";
 import type { ProductCardProps } from "@/app/types/props";
 import Loadingspinner from "../ui/LoadingSpinner";
-import { useCart } from "@/app/context/CartContext";
-import type { CartItem } from "@/app/types/itemCarrito";
 import { useStock } from "@/app/hooks/useStock";
 import Link from "next/link";
 import { AddToCartButton } from "@/app/components/ui/AddToCartButton";
 
 const ProductCard = ({
-  producto_id,
   id_producto_especifico,
   nombre,
   imagen_producto,
   precio,
   porcentaje_desc,
 }: ProductCardProps) => {
-  // Always call the hook, but handle the conditional logic inside
-  const { stock } = useStock(id_producto_especifico || 0);
-  const isValidProduct = id_producto_especifico !== undefined;
+  // Hook para verificar stock del producto
+  useStock(id_producto_especifico || 0);
 
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -36,17 +32,11 @@ const ProductCard = ({
     setImageLoaded(true); // Importante: marcamos como "cargado" para ocultar el spinner
   };
 
-  console.log("Producto en ProductCard:", {
-    producto_id,
-    id_producto_especifico,
-    nombre,
-    imagen_producto,
-    precio,
-    porcentaje_desc,
-  });
-
   return (
-    <div className="group flex flex-col bg-white shadow-md hover:shadow-xl w-full mx-auto relative gap-1 rounded-xl transition-all duration-300 overflow-hidden p-2 sm:p-3 lg:p-4">
+    <article
+      className="group flex flex-col bg-white shadow-md hover:shadow-xl w-full mx-auto relative gap-1 rounded-xl transition-all duration-300 overflow-hidden p-2 sm:p-3 lg:p-4"
+      aria-label={`Producto: ${nombre}, Precio: S/ ${precioFinal.toFixed(2)}`}
+    >
       {/* Container de la imagen */}
       <div
         className="w-full h-48 sm:h-56 lg:h-64 flex justify-center items-center relative cursor-pointer overflow-hidden p-2 sm:p-3 lg:p-4"
@@ -62,7 +52,11 @@ const ProductCard = ({
 
         {/* Imagen principal */}
         {!imageError && (
-          <Link href={`/productos/${id_producto_especifico}`} prefetch={true}>
+          <Link
+            href={`/productos/${id_producto_especifico}`}
+            prefetch={true}
+            aria-label={`Ver detalles de ${nombre}`}
+          >
             <img
               className={`w-auto h-auto max-w-full object-contain transition-transform duration-500 ease-out group-hover:scale-105 sm:group-hover:scale-110 cursor-pointer ${
                 imageLoaded ? "opacity-100" : "opacity-0"
@@ -72,7 +66,7 @@ const ProductCard = ({
                   ? "https://img.freepik.com/vector-gratis/ilustracion-icono-doodle-engranaje_53876-5596.jpg?semt=ais_hybrid&w=740"
                   : imagen_producto
               }
-              alt={nombre}
+              alt={`Imagen del producto ${nombre}`}
               onLoad={() => setImageLoaded(true)}
               onError={handleImageError}
               loading="lazy"
@@ -130,7 +124,7 @@ const ProductCard = ({
           )}
         </div>
       </div>
-    </div>
+    </article>
   );
 };
 

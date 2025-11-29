@@ -1,7 +1,6 @@
 "use client";
 
 import React, {
-  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -14,6 +13,7 @@ import {
   Loader2,
   CheckCircle,
   Save,
+  X,
 } from "lucide-react";
 import { useCart } from "@/app/context/CartContext";
 import type { ProductDetailProps } from "@/app/types/props";
@@ -105,7 +105,7 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
   product,
 }) => {
   const { addItem } = useCart();
-  const [results, setResults] = useState<ResultImage[]>(BASE_GALLERY);
+  const [results] = useState<ResultImage[]>(BASE_GALLERY);
   const [selectedResult, setSelectedResult] = useState<ResultImage>(
     BASE_GALLERY[0]
   );
@@ -115,7 +115,7 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
   const [progress, setProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [modalInsertedIds, setModalInsertedIds] = useState<number[]>([]);
+  const [, setModalInsertedIds] = useState<number[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
   const [avatarRecord, setAvatarRecord] = useState<UserAvatarRecord | null>(
@@ -324,18 +324,6 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
       setSelectedResult(displayedResults[0]);
     }
   }, [displayedResults, selectedResult]);
-
-  const fetchRemoteImageAsFile = useCallback(async (url: string) => {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("No pudimos leer tu avatar guardado");
-    }
-    const blob = await response.blob();
-    const extension = blob.type.split("/")[1] ?? "jpg";
-    return new File([blob], `avatar-${Date.now()}.${extension}`, {
-      type: blob.type || "image/jpeg",
-    });
-  }, []);
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -570,16 +558,94 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
       </header>
 
       {showProgressBar && (
-        <div className="mx-auto flex max-w-2xl flex-col gap-2">
-          <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200">
-            <div
-              className="h-full bg-sky-500 transition-all duration-200"
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            />
+        <div className="mx-auto flex max-w-2xl flex-col gap-2 animate-fade-in">
+          {/* Enhanced progress bar with stages */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/20 shadow-lg">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-sky-400 animate-pulse" />
+                <span className="text-sm font-semibold text-slate-200">
+                  {isGenerating ? "Generando con Gemini 2.5" : "Procesando"}
+                </span>
+              </div>
+              <span className="text-lg font-bold text-sky-400">
+                {Math.round(progress)}%
+              </span>
+            </div>
+
+            <div className="h-3 w-full overflow-hidden rounded-full bg-slate-700/50">
+              <div
+                className="h-full bg-gradient-to-r from-sky-500 via-purple-500 to-pink-500 transition-all duration-300 ease-out relative overflow-hidden"
+                style={{ width: `${Math.min(progress, 100)}%` }}
+              >
+                <div className="absolute inset-0 bg-white/20 animate-shimmer" />
+              </div>
+            </div>
+
+            {/* Status steps */}
+            <div className="mt-4 flex items-center justify-between text-xs">
+              <div
+                className={`flex items-center gap-1.5 ${
+                  progress > 0 ? "text-green-400" : "text-slate-400"
+                }`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    progress > 0 ? "bg-green-400" : "bg-slate-500"
+                  }`}
+                />
+                Analizando
+              </div>
+              <div
+                className={`flex items-center gap-1.5 ${
+                  progress > 30 ? "text-green-400" : "text-slate-400"
+                }`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    progress > 30 ? "bg-green-400" : "bg-slate-500"
+                  }`}
+                />
+                Procesando
+              </div>
+              <div
+                className={`flex items-center gap-1.5 ${
+                  progress > 60 ? "text-green-400" : "text-slate-400"
+                }`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    progress > 60 ? "bg-green-400" : "bg-slate-500"
+                  }`}
+                />
+                Generando
+              </div>
+              <div
+                className={`flex items-center gap-1.5 ${
+                  progress >= 95 ? "text-green-400" : "text-slate-400"
+                }`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    progress >= 95 ? "bg-green-400" : "bg-slate-500"
+                  }`}
+                />
+                Finalizando
+              </div>
+            </div>
+
+            <p className="mt-3 text-xs font-medium text-slate-400 text-center">
+              {isGenerating
+                ? progress < 30
+                  ? "Analizando tu foto y la prenda..."
+                  : progress < 60
+                  ? "Procesando la fusión de imágenes..."
+                  : progress < 95
+                  ? "Generando las vistas con IA..."
+                  : "Finalizando, casi listo..."
+                : statusMessage}
+            </p>
           </div>
-          <p className="text-xs font-medium text-slate-500 text-center">
-            {isGenerating ? "Generando resultados con IA..." : statusMessage}
-          </p>
         </div>
       )}
 
@@ -614,11 +680,27 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
           )}
 
           {isGenerating && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/30 backdrop-blur-sm">
-              <Loader2 className="h-9 w-9 animate-spin text-white" />
-              <p className="text-sm font-medium text-white">
-                Ajustando la prenda a tu foto...
-              </p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-sky-400/30 animate-pulse-ring" />
+                <div className="relative w-16 h-16 rounded-full bg-gradient-to-r from-sky-500 to-purple-500 flex items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-white" />
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-base font-semibold text-white">
+                  Generando tu look virtual
+                </p>
+                <p className="text-sm text-white/80 mt-1">
+                  {progress < 30
+                    ? "Analizando tu avatar..."
+                    : progress < 60
+                    ? "Aplicando la prenda..."
+                    : progress < 95
+                    ? "Creando las vistas..."
+                    : "Finalizando..."}
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -874,108 +956,115 @@ const VirtualTryOnExperience: React.FC<VirtualTryOnExperienceProps> = ({
         </aside>
       </div>
 
-      {/* Success / Loading modal */}
+      {/* Success / Loading modal - Diseño unificado siguiendo Nielsen #4 (Consistencia) */}
       {showSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => {
               if (!modalLoading) setShowSuccessModal(false);
             }}
           />
 
-          <div className="relative max-w-md w-full rounded-2xl overflow-hidden shadow-lg">
-            {/* Header with vibrant gradient */}
-            <div className="panel-dark px-6 py-5 flex items-center gap-4">
-              {!modalLoading && !modalError ? (
-                <CheckCircle className="h-8 w-8 text-emerald-50" />
-              ) : (
-                <div className="w-8 h-8 flex items-center justify-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-white" />
-                </div>
-              )}
-              <div>
-                <h3 className="text-white font-bold">
-                  {modalLoading
-                    ? "Guardando look..."
+          <div className="relative max-w-md w-full mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
+            {/* Success Icon - Similar al de confirmación de compra */}
+            <div className="pt-8 pb-4 flex justify-center">
+              <div
+                className={`w-20 h-20 rounded-full flex items-center justify-center ${
+                  modalLoading
+                    ? "bg-sky-100"
                     : modalError
-                    ? "Error"
-                    : "Look guardado"}
-                </h3>
-                <p className="text-xs text-white/90">
-                  {modalLoading
-                    ? "Estamos subiendo tu imagen a la nube."
-                    : modalError
-                    ? "No se pudo guardar la imagen."
-                    : "Tu look se almacenó correctamente."}
-                </p>
+                    ? "bg-red-100"
+                    : "bg-green-100"
+                }`}
+              >
+                {modalLoading ? (
+                  <Loader2 className="w-10 h-10 text-sky-500 animate-spin" />
+                ) : modalError ? (
+                  <X className="w-10 h-10 text-red-500" />
+                ) : (
+                  <CheckCircle className="w-10 h-10 text-green-500" />
+                )}
               </div>
             </div>
 
-            <div className="bg-white p-6">
+            {/* Content */}
+            <div className="px-6 pb-6 text-center">
+              <h3
+                id="modal-title"
+                className="text-xl font-bold text-gray-900 mb-2"
+              >
+                {modalLoading
+                  ? "Guardando tu look..."
+                  : modalError
+                  ? "No se pudo guardar"
+                  : "¡Look guardado!"}
+              </h3>
+
+              <p className="text-gray-600 text-sm mb-6">
+                {modalLoading
+                  ? "Estamos subiendo tus imágenes a la nube. Esto puede tardar unos segundos."
+                  : modalError
+                  ? modalError
+                  : "Tu look se ha guardado correctamente en tu galería personal."}
+              </p>
+
+              {/* Progress bar for loading state - Nielsen #1 (Visibilidad del estado) */}
               {modalLoading && (
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-24 h-24 rounded-full badge-success flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-white" />
-                  </div>
-                  <p className="text-sm text-slate-700">
-                    Subiendo imagenes... esto puede tardar unos segundos.
-                  </p>
-                  <div className="mt-3 w-full h-2 bg-ebony-50 rounded-full overflow-hidden">
+                <div className="mb-6">
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-ebony-600 animate-pulse"
-                      style={{ width: "60%" }}
+                      className="h-full bg-gradient-to-r from-sky-500 to-purple-500 rounded-full animate-progress-indeterminate"
                     />
                   </div>
-                </div>
-              )}
-
-              {!modalLoading && modalError && (
-                <div className="text-center">
-                  <p className="text-sm text-red-600 font-medium">
-                    {modalError}
-                  </p>
-                  <p className="mt-2 text-xs text-slate-500">
-                    Intenta nuevamente o revisa tu conexión.
+                  <p className="text-xs text-gray-500 mt-2">
+                    Por favor no cierres esta ventana
                   </p>
                 </div>
               )}
 
+              {/* Success message with helpful info */}
               {!modalLoading && !modalError && (
-                <div>
-                  <p className="text-sm text-slate-700">
-                    Se guardó tu look correctamente.
+                <div className="bg-green-50 rounded-xl p-4 mb-6 text-left">
+                  <p className="text-sm text-green-800">
+                    Puedes ver todos tus looks guardados en tu perfil, sección
+                    &ldquo;Mis Looks&rdquo;.
                   </p>
-                  {modalInsertedIds && modalInsertedIds.length > 0 && (
-                    <div className="mt-4">
-                      <p className="text-sm font-medium text-slate-800">
-                        IDs guardados:
-                      </p>
-                      <ul className="mt-2 max-h-36 overflow-auto text-xs text-slate-700 list-disc list-inside">
-                        {modalInsertedIds.map((id) => (
-                          <li key={id}>#{id}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
                 </div>
               )}
 
-              <div className="mt-6 flex justify-end">
-                <button
-                  disabled={modalLoading}
-                  className={`rounded-md px-4 py-2 text-sm font-semibold ${
-                    modalLoading ? "bg-slate-300 text-slate-600" : "btn-success"
-                  }`}
-                  onClick={() => {
-                    setShowSuccessModal(false);
-                    setModalError(null);
-                    setModalInsertedIds([]);
-                  }}
-                >
-                  {modalLoading ? "Por favor espera" : "Cerrar"}
-                </button>
-              </div>
+              {/* Error retry suggestion */}
+              {!modalLoading && modalError && (
+                <div className="bg-red-50 rounded-xl p-4 mb-6 text-left">
+                  <p className="text-sm text-red-800">
+                    Verifica tu conexión a internet e intenta nuevamente.
+                  </p>
+                </div>
+              )}
+
+              {/* Action button */}
+              <button
+                disabled={modalLoading}
+                className={`w-full py-3 px-6 rounded-full font-semibold transition-all ${
+                  modalLoading
+                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    : modalError
+                    ? "bg-red-500 text-white hover:bg-red-600"
+                    : "bg-green-500 text-white hover:bg-green-600"
+                }`}
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  setModalError(null);
+                  setModalInsertedIds([]);
+                }}
+              >
+                {modalLoading ? "Guardando..." : modalError ? "Cerrar" : "Continuar"}
+              </button>
             </div>
           </div>
         </div>

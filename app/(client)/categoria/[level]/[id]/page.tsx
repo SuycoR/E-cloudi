@@ -1,7 +1,7 @@
 // /app/categoria/[categoryLevel]/[categoryId]/page.tsx
 'use client';
 
-import React, { useState } from "react";
+import React, { useState, use } from "react";
 import VariationBox from "@/app/components/ui/VariationBox";
 import ProductSection from "@/app/components/products/ProductSection";
 import { categorias } from "@/lib/categorias";
@@ -43,9 +43,10 @@ function getBreadcrumb(level: number, id: number): string[] {
   return path;
 }
 
-export default function CategoriaPage({ params }: { params: { level: string; id: string } }) {
-  const categoryLevel = Number(params.level);
-  const categoryId = Number(params.id);
+export default function CategoriaPage({ params }: { params: Promise<{ level: string; id: string }> }) {
+  const resolvedParams = use(params);
+  const categoryLevel = Number(resolvedParams.level);
+  const categoryId = Number(resolvedParams.id);
   const [selectedVariations, setSelectedVariations] = useState<number[]>([]);
   const [minPrecio, setMinPrecio] = useState<string | null>(null);
   const [maxPrecio, setMaxPrecio] = useState<string | null>(null);
@@ -60,9 +61,6 @@ export default function CategoriaPage({ params }: { params: { level: string; id:
   const productSectionKey = `${categoryId}-${categoryLevel}-${selectedVariations.join(',')}`;
   // Breadcrumb
   const breadcrumb = getBreadcrumb(categoryLevel, categoryId);
-  
-  console.log("Precio minimo:", minPrecio);
-  console.log("Precio maximo:", maxPrecio);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
@@ -148,9 +146,6 @@ export default function CategoriaPage({ params }: { params: { level: string; id:
                         min={Number(initialMin ?? 0)}
                         max={Number(initialMax ?? 0)}
                         onChange={(nuevoMin, nuevoMax) => {
-                          console.log("Nuevo rango elegido:", nuevoMin, nuevoMax);
-                          console.log("precio minimo original:", minPrecio);
-                          console.log("precio maximo original:", maxPrecio);
                           setMinPrecio(nuevoMin.toString());
                           setMaxPrecio(nuevoMax.toString());
                         }}
@@ -208,7 +203,6 @@ export default function CategoriaPage({ params }: { params: { level: string; id:
                   selectedVariations={selectedVariations}
                   onPrecioChange={(minPrecio, maxPrecio) => {
                     if (!hasInitializedRange) {
-                      console.log("Callback en page:", minPrecio, maxPrecio);
                       setMinPrecio(minPrecio);
                       setMaxPrecio(maxPrecio);
                       setInitialMin(Number(minPrecio));

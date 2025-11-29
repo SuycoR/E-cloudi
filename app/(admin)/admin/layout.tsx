@@ -28,7 +28,7 @@ export default function AdminLayout({
           {/* Navbar admin */}
           <header className="bg-white border-b shadow-sm py-5 flex items-center justify-around px-4 ">
             <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold">🛒 CompX</span>
+              <span className="text-2xl font-bold">🛒 ecloudi</span>
             </div>
             <div className="hidden md:block text-lg font-medium text-gray-600">
               Panel de administrador

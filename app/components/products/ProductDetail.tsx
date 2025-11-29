@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import type { ProductDetailProps } from "@/app/types/props";
 import { Expand, X } from "lucide-react";
-import ProductVariations from "./ProductVariations";
+import ProductVariations, { ProductVariationItem } from "./ProductVariations";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
 import type { CartItem } from "@/app/types/itemCarrito";
@@ -286,7 +286,14 @@ function ProductSpecs({
   marca,
   variations,
   id_producto_especifico,
-}: any) {
+}: {
+  SKU: string;
+  especificaciones: Record<string, unknown>;
+  cantidad_stock: number;
+  marca?: string | null;
+  variations: ProductVariationItem[];
+  id_producto_especifico: number;
+}) {
   return (
     <ul
       className="text-base sm:text-lg flex flex-col gap-3 mt-3"
@@ -303,6 +310,14 @@ function ProductSpecs({
           {SKU}
         </span>
       </li>
+      {marca && (
+        <li className="text-gray-700 flex items-center gap-2">
+          <strong className="text-gray-900">Marca:</strong>{" "}
+          <span className="bg-gray-100 px-2 py-1 rounded text-sm">
+            {marca}
+          </span>
+        </li>
+      )}
       {especificaciones &&
         Object.entries(especificaciones).map(([key, value]) => (
           <li key={key} className="text-gray-700 flex items-center gap-2">

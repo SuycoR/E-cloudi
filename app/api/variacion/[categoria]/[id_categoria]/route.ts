@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db"; 
 import { RowDataPacket } from "mysql2";
-import { Categoria, Variacion, Valor } from "@/app/types/valorVariacion";
+import { Categoria } from "@/app/types/valorVariacion";
 
 type Data = RowDataPacket & {
   nombre_categoria: string;
@@ -15,9 +15,10 @@ type Data = RowDataPacket & {
 
 // Trae todas las variaciones asociadas a una categoria, unica y exclusivamente 
 // de esa categoria.
-export async function GET(request: Request, { params }: { params: { categoria: string; id_categoria: string } }) {
-  const categoria = parseInt(params.categoria);
-  const id_categoria = parseInt(params.id_categoria);
+export async function GET(request: Request, { params }: { params: Promise<{ categoria: string; id_categoria: string }> }) {
+  const { categoria: categoriaStr, id_categoria: idCategoriaStr } = await params;
+  const categoria = parseInt(categoriaStr);
+  const id_categoria = parseInt(idCategoriaStr);
 
   // Validamos que `categoria` sea 1, 2 o 3
   if (![1, 2, 3].includes(categoria)) {

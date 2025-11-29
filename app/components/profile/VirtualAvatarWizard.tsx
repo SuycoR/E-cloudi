@@ -1053,7 +1053,7 @@ const VirtualAvatarWizard = () => {
               ¡Avatar generado!
             </h4>
             <p className="mt-2 text-sm text-gray-600">
-              Guardamos tu avatar en la nube. Te redireccionaremos a "Mi perfil"
+              Guardamos tu avatar en la nube. Te redireccionaremos a &ldquo;Mi perfil&rdquo;
               para que puedas administrarlo.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { auth } from '../../auth/[...nextauth]/route';
+import { auth } from '@/lib/auth';
 
 /**
  * Definimos una interfaz explícita para el contexto que recibimos.

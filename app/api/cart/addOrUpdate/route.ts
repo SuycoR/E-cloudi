@@ -2,18 +2,14 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { auth } from '../../auth/[...nextauth]/route';
+import { auth } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
     const session = await auth();
     const {
       productId,
-      nombre,
-      descripcion,
-      image_producto,
       cantidad,
-      precio,
     } = await req.json();
 
     const userId = session?.user.id;
@@ -52,7 +48,7 @@ export async function POST(req: Request) {
         `INSERT INTO carrito_compras (id_usuario) VALUES (?)`,
         [userId]
       );
-      // @ts-ignore
+      // @ts-expect-error - carritoRows is defined above
       carritoRows.push({ id: (insertResult as any).insertId });
     }
 

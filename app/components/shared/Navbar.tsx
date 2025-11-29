@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { ShoppingBag, Menu, User, ShoppingCart, Search } from "lucide-react";
 import Drawer from "../ui/Drawer";
 import CartDrawer from "../ui/CartDrawer";
@@ -8,35 +8,43 @@ import Searchbar from "@/app/components/ui/Searchbar";
 import { useCart } from "@/app/context/CartContext";
 import { useSession } from "next-auth/react";
 import UserMenu from "../ui/UserMenu";
-import { useEffect } from "react";
-
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
+  const [cartBounce, setCartBounce] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null!);
-  const { cart } = useCart();
+  const { cart, cartAnimationTrigger } = useCart();
   const { data: session } = useSession();
 
+  // Animación del icono del carrito cuando se añade un producto
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.gtag) {
-      console.log("Enviando user_id a Google Analytics:", session?.user?.id);
-      // Enviar el user_id a Google Analytics
+    if (cartAnimationTrigger > 0) {
+      setCartBounce(true);
+      const timer = setTimeout(() => setCartBounce(false), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [cartAnimationTrigger]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.gtag) {
       if (session?.user?.id) {
-        console.log("User ID encontrado:", session.user.id);
-        // Asegúrate de que gtag esté definido antes de usarlo
-        window.gtag('set', { user_id: session.user.id });
+        window.gtag("set", { user_id: session.user.id });
       } else {
-        window.gtag('set', { user_id: null });
+        window.gtag("set", { user_id: null });
       }
     }
   }, [session]);
 
   return (
     <>
-      <nav className="bg-ebony-950 w-full sticky top-0 left-0 z-50 shadow-lg">
+      <nav
+        className="bg-ebony-950 w-full sticky top-0 left-0 z-50 shadow-lg"
+        role="navigation"
+        aria-label="Navegación principal"
+      >
         <div className="container-padding">
           <div className="flex items-center justify-between py-3 sm:py-3 lg:py-4">
             {/* Izquierda */}
@@ -50,7 +58,7 @@ const Navbar = () => {
                   <ShoppingBag className="text-ebony-950 w-4 h-4 sm:w-6 sm:h-6 lg:w-10 lg:h-10" />
                 </div>
                 <h1 className="text-white text-lg sm:text-xl lg:text-2xl font-bold">
-                  CompX
+                  ecloudi
                 </h1>
               </button>
 
@@ -73,17 +81,29 @@ const Navbar = () => {
               {/* Botón búsqueda móvil */}
               <button
                 className="lg:hidden flex items-center justify-center text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
-                aria-label="Buscar"
+                aria-label="Abrir barra de búsqueda"
+                aria-expanded={searchOpen}
                 onClick={() => setSearchOpen(!searchOpen)}
               >
-                <Search className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Search className="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true" />
               </button>
 
               {/* Usuario */}
               {session?.user ? (
-                <button ref={buttonRef} onClick={() => setUserOpen(!userOpen)}>
+                <button
+                  ref={buttonRef}
+                  onClick={() => setUserOpen(!userOpen)}
+                  aria-label={`Menú de usuario para ${
+                    session.user.name || session.user.email
+                  }`}
+                  aria-expanded={userOpen}
+                  aria-haspopup="menu"
+                >
                   <div className="group flex items-center gap-1 sm:gap-2 text-white text-sm sm:text-base lg:text-lg cursor-pointer p-2 sm:px-3 sm:py-2 hover:bg-white/10 rounded-xl transition-all duration-200 hover:scale-105 border border-transparent hover:border-white/20">
-                    <User className="w-5 h-5 sm:w-6 sm:h-6 lg:w-6 lg:h-6" />
+                    <User
+                      className="w-5 h-5 sm:w-6 sm:h-6 lg:w-6 lg:h-6"
+                      aria-hidden="true"
+                    />
                     <div className="flex items-center gap-1 sm:gap-2">
                       <span className="hidden sm:inline">Hola,</span>
                       <span>
@@ -103,16 +123,31 @@ const Navbar = () => {
                 </button>
               )}
 
-              {/* Carrito */}
+              {/* Carrito con animación */}
               <button
-                className="group flex items-center gap-1 sm:gap-2 text-white text-sm sm:text-base lg:text-lg cursor-pointer p-2 sm:px-3 sm:py-2 hover:bg-white/10 rounded-xl transition-all duration-200 hover:scale-105 relative border border-transparent hover:border-white/20"
-                aria-label="Mi cesta"
+                className={`group flex items-center gap-1 sm:gap-2 text-white text-sm sm:text-base lg:text-lg cursor-pointer p-2 sm:px-3 sm:py-2 hover:bg-white/10 rounded-xl transition-all duration-200 hover:scale-105 relative border border-transparent hover:border-white/20 ${
+                  cartBounce ? "animate-bounce-in" : ""
+                }`}
+                aria-label={`Carrito de compras con ${cart.reduce(
+                  (sum, i) => sum + i.cantidad,
+                  0
+                )} productos`}
                 onClick={() => setCartOpen(true)}
               >
                 <div className="relative">
-                  <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 lg:w-6 lg:h-6" />
+                  <ShoppingCart
+                    className={`w-5 h-5 sm:w-6 sm:h-6 lg:w-6 lg:h-6 transition-transform ${
+                      cartBounce ? "scale-125 text-green-400" : ""
+                    }`}
+                    aria-hidden="true"
+                  />
                   {cart.length > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white rounded-full text-[10px] min-w-[18px] h-[18px] flex items-center justify-center px-1 font-bold border-2 border-white shadow-sm z-10">
+                    <span
+                      className={`absolute -top-1.5 -right-1.5 bg-sky-500 text-white rounded-full text-[10px] min-w-[18px] h-[18px] flex items-center justify-center px-1 font-bold border-2 border-white shadow-sm z-10 transition-all ${
+                        cartBounce ? "scale-125 bg-green-500" : ""
+                      }`}
+                      aria-hidden="true"
+                    >
                       {cart.reduce((sum, i) => sum + i.cantidad, 0)}
                     </span>
                   )}

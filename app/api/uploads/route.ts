@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { uploadBufferToS3 } from "@/lib/s3";
 import { db } from "@/lib/db";
-import { auth } from "../auth/[...nextauth]/route";
+import { auth } from "@/lib/auth";
 
 // This route accepts multipart/form-data with a file field named `file`.
 // It also accepts JSON body with `images` array of URLs to fetch and save to S3.

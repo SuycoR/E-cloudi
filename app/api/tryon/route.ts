@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "../auth/[...nextauth]/route";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { GoogleGenAI } from "@google/genai";
 import { RowDataPacket } from "mysql2";
@@ -174,7 +174,6 @@ The background should be clean, neutral, and professional.`,
   // Generate each view sequentially with proper delays to respect rate limits
   for (let i = 0; i < views.length; i++) {
     const view = views[i];
-    console.log(`Generating ${view.id} view...`);
 
     // Retry logic for rate limit errors
     let result: GeneratedView | null = null;
@@ -198,15 +197,8 @@ The background should be clean, neutral, and professional.`,
         const errorObj = error as { status?: number };
         // If rate limited (429), wait and retry
         if (errorObj.status === 429 && attempts < maxAttempts) {
-          console.log(
-            `Rate limited on ${view.id}, waiting 25s before retry (attempt ${attempts}/${maxAttempts})...`
-          );
           await new Promise((resolve) => setTimeout(resolve, 25000));
         } else {
-          console.error(
-            `Error generating ${view.id} view (attempt ${attempts}):`,
-            error
-          );
           break;
         }
       }
@@ -214,17 +206,11 @@ The background should be clean, neutral, and professional.`,
 
     if (result) {
       results.push(result);
-      console.log(`✓ ${view.id} view generated successfully`);
-    } else {
-      console.warn(
-        `✗ Failed to generate ${view.id} view after ${attempts} attempts`
-      );
     }
 
-    // Wait 8 seconds between requests to avoid rate limits (free tier is ~2 requests/min)
+    // Small delay between requests (1.5s) to avoid immediate rate limits
     if (i < views.length - 1) {
-      console.log(`Waiting 8s before next view...`);
-      await new Promise((resolve) => setTimeout(resolve, 8000));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     }
   }
 

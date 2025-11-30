@@ -1,17 +1,7 @@
 import Link from "next/link";
 import VirtualTryOnExperience from "@/app/components/products/VirtualTryOnExperience";
 import type { ProductDetailProps } from "@/app/types/props";
-
-async function getProduct(id: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  const res = await fetch(`${baseUrl}/api/productos/${id}`, {
-    // cache for 60s to improve perceived navigation performance (ISR)
-    next: { revalidate: 60 },
-  });
-  if (!res.ok) throw new Error("Error al obtener el producto");
-  const data = await res.json();
-  return data as ProductDetailProps[];
-}
+import { fetchProductDetailById } from "@/lib/products";
 
 export default async function VirtualTryOnPage({
   params,
@@ -22,8 +12,8 @@ export default async function VirtualTryOnPage({
   let product: ProductDetailProps | null = null;
 
   try {
-    const data = await getProduct(id);
-    product = data?.[0] ?? null;
+    const data = await fetchProductDetailById(Number(id));
+    product = (data?.[0] as ProductDetailProps) ?? null;
   } catch (error) {
     console.error("Virtual try-on product fetch error:", error);
   }
